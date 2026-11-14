@@ -50,7 +50,7 @@ async function saveProfile(username,data){
 function setLoginBusy(busy,label){
   const btn=$('login-btn');
   btn.disabled=busy;
-  btn.innerHTML=busy?`<span class="spinner"></span> ${esc(label||'Bitte warten …')}`:(_authMode==='bootstrap'?'<i class="ti ti-shield-check"></i> ADMIN EINRICHTEN':'<i class="ti ti-login"></i> ANMELDEN');
+  btn.innerHTML=busy?`<span class="spinner"></span> ${esc(label||'Bitte warten …')}`:(_authMode==='bootstrap'?'<i class="ti ti-shield-check"></i> Admin einrichten':'<i class="ti ti-login"></i> Anmelden');
 }
 function loginError(msg){ $('login-err').textContent=msg||''; }
 
@@ -70,7 +70,8 @@ function setAuthMode(mode){
   _authMode=mode;
   const boot=mode==='bootstrap';
   show('login-bootstrap',boot);
-  $('login-sub').textContent=boot?'ERSTEINRICHTUNG · ERSTEN ADMIN ANLEGEN':'GRANDRP DE01 · ZUGANG ERFORDERLICH';
+  $('login-sub').textContent=boot?'Ersteinrichtung – lege den ersten Admin-Account an':'Zugang nur für autorisiertes FIB-Personal';
+  $('login-screen').querySelector('.login-title').textContent=boot?'Einrichten':'Anmelden';
   $('login-pass').autocomplete=boot?'new-password':'current-password';
   setLoginBusy(false);
 }
@@ -269,12 +270,14 @@ function roleLabels(roles){
 function applyRoleVisibility(){
   document.querySelectorAll('[data-roles]').forEach(el=>{ el.hidden=!hasRole(el.dataset.roles); });
   $('user-chip').textContent=currentName||currentUser||'';
-  setOb('dash-user',currentName||currentUser||'--');
-  setOb('dash-roles',roleLabels(currentRoles));
+  setOb('dash-name',(currentName||currentUser||'').split(' ')[0]||'--');
+  setOb('sb-name',currentName||currentUser||'');
+  setOb('sb-role',roleLabels(currentRoles));
   updateTopbarAvatar();
 }
 function updateTopbarAvatar(){
   $('user-avatar-wrap').innerHTML=avatarHtml(currentName||currentUser,currentProfile.photo,'mini');
+  $('sb-avatar').innerHTML=avatarHtml(currentName||currentUser,currentProfile.photo,'mini lg');
 }
 function initials(name){
   if(!name)return'?';

@@ -2,6 +2,8 @@
 
 buildTemplates();
 renderColorPresets();
+restoreNavGroups();
+renderThemeButtons();
 renderTplVars();
 try{ const c=localStorage.getItem('fib_color'); if(c)setCol(c); }catch(e){}
 tick(); setInterval(tick,1000);

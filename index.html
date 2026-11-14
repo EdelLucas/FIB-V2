@@ -1,89 +1,204 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="color-scheme" content="dark">
+<meta name="color-scheme" content="dark light">
 <meta name="referrer" content="no-referrer">
-<title>FIB · Personalabteilung · GrandRP DE01</title>
+<title>FIB · Personalabteilung</title>
+<script>/* Theme vor dem ersten Zeichnen setzen (kein Aufblitzen) */try{var t=localStorage.getItem('fib_theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
 <!-- ===================== START / LADEN ===================== -->
-<div id="boot-screen" class="fullscreen">
+<div id="boot-screen" class="fullscreen center-screen">
   <div class="boot"><div class="emblem lg">FIB</div><span class="spinner"></span></div>
 </div>
 
 <!-- ===================== LOGIN ===================== -->
-<div id="login-screen" class="fullscreen" hidden>
-  <form class="login-box" autocomplete="on">
-    <div class="emblem lg">FIB</div>
-    <h1 class="login-title">PERSONALABTEILUNG</h1>
-    <p class="login-sub" id="login-sub">GRANDRP DE01 · ZUGANG ERFORDERLICH</p>
-
-    <div class="f">
-      <label class="fl" for="login-user">Zugangskennung</label>
-      <input class="fi" id="login-user" placeholder="z. B. jschmidt" autocomplete="username" autocapitalize="none" spellcheck="false" data-enter="login">
+<div id="login-screen" class="fullscreen auth-screen" hidden>
+  <aside class="auth-brand">
+    <div class="auth-brand-inner">
+      <div class="emblem xl">FIB</div>
+      <h2>Federal Investigation Bureau</h2>
+      <p>Personalabteilung · GrandRP DE01</p>
+      <ul class="auth-points">
+        <li><i class="ti ti-users"></i> Mitarbeiterverzeichnis live aus dem Sheet</li>
+        <li><i class="ti ti-brand-discord"></i> HR-Nachrichten mit Discord-Vorschau</li>
+        <li><i class="ti ti-shield-check"></i> Abteilungsdaten serverseitig geschützt</li>
+      </ul>
     </div>
-    <div class="f">
-      <label class="fl" for="login-pass">Passwort</label>
-      <input class="fi" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" data-enter="login">
-    </div>
+  </aside>
+  <div class="auth-main">
+    <form class="login-box" autocomplete="on">
+      <div class="emblem lg auth-mobile-only">FIB</div>
+      <h1 class="login-title">Anmelden</h1>
+      <p class="login-sub" id="login-sub">Zugang nur für autorisiertes FIB-Personal</p>
 
-    <div id="login-bootstrap" hidden>
-      <div class="note">
-        <i class="ti ti-shield-check"></i>
-        <div>Noch kein Admin eingerichtet. Lege hier den ersten Admin-Account an. Zur Bestätigung wird das <b>bisherige Admin-Passwort</b> der alten Version benötigt.</div>
+      <div class="f">
+        <label class="fl" for="login-user">Zugangskennung</label>
+        <div class="sw"><i class="ti ti-user"></i><input class="fi si lg" id="login-user" placeholder="z. B. jschmidt" autocomplete="username" autocapitalize="none" spellcheck="false" data-enter="login"></div>
       </div>
       <div class="f">
-        <label class="fl" for="login-pass2">Passwort wiederholen</label>
-        <input class="fi" id="login-pass2" type="password" autocomplete="new-password" data-enter="login">
+        <label class="fl" for="login-pass">Passwort</label>
+        <div class="sw"><i class="ti ti-lock"></i><input class="fi si lg" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password" data-enter="login"></div>
       </div>
-      <div class="f">
-        <label class="fl" for="login-proof">Bisheriges Admin-Passwort</label>
-        <input class="fi" id="login-proof" type="password" autocomplete="off" data-enter="login">
-      </div>
-    </div>
 
-    <div class="login-err" id="login-err" role="alert"></div>
-    <button type="button" class="btn ok block" id="login-btn" data-action="login"><i class="ti ti-login"></i> ANMELDEN</button>
-    <p class="login-foot">Zugang nur für autorisiertes FIB-Personal.<br>Kein Account? Wende dich an die Systemadministration.</p>
-  </form>
+      <div id="login-bootstrap" hidden>
+        <div class="note">
+          <i class="ti ti-shield-check"></i>
+          <div><b>Ersteinrichtung:</b> Noch kein Admin vorhanden. Lege hier den ersten Admin-Account an. Zur Bestätigung wird das <b>bisherige Admin-Passwort</b> der alten Version benötigt.</div>
+        </div>
+        <div class="f">
+          <label class="fl" for="login-pass2">Passwort wiederholen</label>
+          <input class="fi lg" id="login-pass2" type="password" autocomplete="new-password" data-enter="login">
+        </div>
+        <div class="f">
+          <label class="fl" for="login-proof">Bisheriges Admin-Passwort</label>
+          <input class="fi lg" id="login-proof" type="password" autocomplete="off" data-enter="login">
+        </div>
+      </div>
+
+      <div class="login-err" id="login-err" role="alert"></div>
+      <button type="button" class="btn ok block lg" id="login-btn" data-action="login"><i class="ti ti-login"></i> Anmelden</button>
+      <p class="login-foot">Kein Account? Wende dich an die Systemadministration.</p>
+    </form>
+  </div>
 </div>
 
 <!-- ===================== PFLICHT-PASSWORTWECHSEL ===================== -->
-<div id="pwchange-screen" class="fullscreen" hidden>
-  <form class="login-box">
+<div id="pwchange-screen" class="fullscreen center-screen" hidden>
+  <form class="login-box card-box">
     <div class="emblem lg"><i class="ti ti-key"></i></div>
-    <h1 class="login-title">NEUES PASSWORT</h1>
-    <p class="login-sub">Dein Passwort ist nur übergangsweise gültig</p>
+    <h1 class="login-title">Neues Passwort festlegen</h1>
+    <p class="login-sub">Dein bisheriges Passwort war nur übergangsweise gültig.</p>
     <div class="f">
       <label class="fl" for="pwchange-new">Neues Passwort</label>
-      <input class="fi" id="pwchange-new" type="password" placeholder="mindestens 8 Zeichen" autocomplete="new-password" data-enter="pw-change">
+      <input class="fi lg" id="pwchange-new" type="password" placeholder="mindestens 8 Zeichen" autocomplete="new-password" data-enter="pw-change">
     </div>
     <div class="f">
       <label class="fl" for="pwchange-confirm">Neues Passwort bestätigen</label>
-      <input class="fi" id="pwchange-confirm" type="password" autocomplete="new-password" data-enter="pw-change">
+      <input class="fi lg" id="pwchange-confirm" type="password" autocomplete="new-password" data-enter="pw-change">
     </div>
     <div class="login-err" id="pwchange-err" role="alert"></div>
-    <button type="button" class="btn ok block" id="pwchange-btn" data-action="pw-change"><i class="ti ti-device-floppy"></i> PASSWORT SETZEN</button>
+    <button type="button" class="btn ok block lg" id="pwchange-btn" data-action="pw-change"><i class="ti ti-device-floppy"></i> Passwort setzen</button>
     <button type="button" class="btn ghost block" data-action="logout">Abmelden</button>
   </form>
 </div>
 
 <!-- ===================== APP ===================== -->
 <div id="app-root" hidden>
-<div class="root">
+<div class="shell">
 
+<!-- ---------- Seitenleiste ---------- -->
+<div class="sb-backdrop" data-action="sidebar-close"></div>
+<nav class="sb" aria-label="Hauptnavigation">
+  <div class="sb-brand">
+    <div class="emblem">FIB</div>
+    <div class="sb-brand-text">
+      <div class="sb-title">Personalabteilung</div>
+      <div class="sb-sub">FIB · GrandRP DE01</div>
+    </div>
+  </div>
+
+  <div class="sb-scroll">
+    <div class="nav-group" data-label="Übersicht">
+      <div class="nl">Übersicht</div>
+      <button class="ni" data-action="nav" data-arg="dash" data-view="dash" title="Dashboard"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
+      <button class="ni" data-action="nav" data-arg="ma" data-view="ma" title="Mitarbeiterverzeichnis"><i class="ti ti-users"></i><span>Mitarbeiterverzeichnis</span></button>
+      <button class="ni" data-action="nav" data-arg="kl" data-view="kl" title="Klassifizierung"><i class="ti ti-shield-lock"></i><span>Klassifizierung</span></button>
+    </div>
+
+    <div class="nav-group collapsible" data-roles="hr" data-label="Human Resources" data-group="hr">
+      <button class="nl-sub" data-action="nav-group" data-arg="hr"><span>Human Resources</span><i class="ti ti-chevron-down"></i></button>
+      <div class="nav-items">
+        <button class="ni" data-action="nav" data-arg="rang" data-view="rang" title="Ranganpassung"><i class="ti ti-award"></i><span>Ranganpassung</span></button>
+        <button class="ni" data-action="nav" data-arg="ein" data-view="ein" title="Einstellung"><i class="ti ti-user-plus"></i><span>Einstellung</span></button>
+        <button class="ni" data-action="nav" data-arg="kue" data-view="kue" title="Kündigung"><i class="ti ti-user-minus"></i><span>Kündigung</span></button>
+        <button class="ni" data-action="nav" data-arg="san" data-view="san" title="Sanktion"><i class="ti ti-gavel"></i><span>Sanktion</span></button>
+        <button class="ni" data-action="nav" data-arg="pa" data-view="pa" title="Personalakte"><i class="ti ti-id-badge"></i><span>Personalakte</span></button>
+        <button class="ni" data-action="nav" data-arg="az" data-view="az" title="AZ-System"><i class="ti ti-file-certificate"></i><span>AZ-System</span></button>
+        <button class="ni" data-action="nav" data-arg="tpl" data-view="tpl" title="Vorlagen-Editor"><i class="ti ti-template"></i><span>Vorlagen-Editor</span></button>
+      </div>
+    </div>
+
+    <div class="nav-group collapsible" data-roles="fibco" data-label="FIBCO" data-group="fibco">
+      <button class="nl-sub" data-action="nav-group" data-arg="fibco"><span>FIBCO</span><i class="ti ti-chevron-down"></i></button>
+      <div class="nav-items">
+        <button class="ni" data-action="nav" data-arg="fibco" data-view="fibco" title="Fallakten"><i class="ti ti-folder-open"></i><span>Fallakten</span></button>
+        <button class="ni" data-action="nav-members" data-arg="fibco" data-view="fibco" data-tab="members" title="FIBCO Mitglieder"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
+      </div>
+    </div>
+    <div class="nav-group collapsible" data-roles="cid" data-label="CID" data-group="cid">
+      <button class="nl-sub" data-action="nav-group" data-arg="cid"><span>CID</span><i class="ti ti-chevron-down"></i></button>
+      <div class="nav-items">
+        <button class="ni" data-action="nav" data-arg="cid" data-view="cid" title="Beweise"><i class="ti ti-microscope"></i><span>Beweise</span></button>
+        <button class="ni" data-action="nav-members" data-arg="cid" data-view="cid" data-tab="members" title="CID Mitglieder"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
+      </div>
+    </div>
+    <div class="nav-group collapsible" data-roles="td" data-label="Training Division" data-group="td">
+      <button class="nl-sub" data-action="nav-group" data-arg="td"><span>Training Division</span><i class="ti ti-chevron-down"></i></button>
+      <div class="nav-items">
+        <button class="ni" data-action="nav" data-arg="td" data-view="td" title="Ausbildung"><i class="ti ti-school"></i><span>Ausbildung</span></button>
+        <button class="ni" data-action="nav-members" data-arg="td" data-view="td" data-tab="members" title="TD Mitglieder"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
+      </div>
+    </div>
+    <div class="nav-group collapsible" data-roles="cirg" data-label="CIRG" data-group="cirg">
+      <button class="nl-sub" data-action="nav-group" data-arg="cirg"><span>CIRG</span><i class="ti ti-chevron-down"></i></button>
+      <div class="nav-items">
+        <button class="ni" data-action="nav" data-arg="cirg" data-view="cirg" title="Events"><i class="ti ti-siren"></i><span>Events</span></button>
+        <button class="ni" data-action="nav-members" data-arg="cirg" data-view="cirg" data-tab="members" title="CIRG Mitglieder"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
+      </div>
+    </div>
+    <div class="nav-group collapsible" data-roles="law" data-label="LAW Department" data-group="law">
+      <button class="nl-sub" data-action="nav-group" data-arg="law"><span>LAW Department</span><i class="ti ti-chevron-down"></i></button>
+      <div class="nav-items">
+        <button class="ni" data-action="nav" data-arg="law" data-view="law" title="Aktensystem"><i class="ti ti-scale"></i><span>Aktensystem</span></button>
+        <button class="ni" data-action="nav-members" data-arg="law" data-view="law" data-tab="members" title="LAW Mitglieder"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
+      </div>
+    </div>
+
+    <div class="nav-group" data-label="System">
+      <div class="nl">System</div>
+      <button class="ni" data-roles="admin" data-action="nav" data-arg="benutzer" data-view="benutzer" title="Benutzerverwaltung"><i class="ti ti-user-cog"></i><span>Benutzerverwaltung</span></button>
+      <button class="ni" data-action="nav" data-arg="cfg" data-view="cfg" title="Einstellungen"><i class="ti ti-settings"></i><span>Einstellungen</span></button>
+    </div>
+  </div>
+
+  <div class="sb-foot">
+    <button type="button" class="sb-user" data-action="nav" data-arg="profil" data-view="profil" title="Mein Profil">
+      <span id="sb-avatar"></span>
+      <span class="sb-user-text"><span id="sb-name" class="strong"></span><span id="sb-role" class="muted small"></span></span>
+    </button>
+    <button type="button" class="btn icon ghost sb-mini-btn" data-action="sidebar-mini" title="Seitenleiste ein-/ausklappen" aria-label="Seitenleiste ein-/ausklappen"><i class="ti ti-layout-sidebar-left-collapse"></i></button>
+  </div>
+</nav>
+
+<!-- ---------- Hauptbereich ---------- -->
+<div class="content">
 <header class="topbar">
   <button class="sb-toggle" type="button" data-action="sidebar" aria-label="Menü öffnen" aria-expanded="false"><i class="ti ti-menu-2"></i></button>
-  <div class="topbar-brand"><span class="tb-full">FEDERAL INVESTIGATION BUREAU ✦ GRANDRP DE01 ✦ </span>PERSONALABTEILUNG</div>
+  <div class="crumbs" aria-label="Brotkrumen">
+    <span id="crumb-group" class="muted">Übersicht</span>
+    <i class="ti ti-chevron-right muted"></i>
+    <span id="crumb-page" class="strong">Dashboard</span>
+  </div>
+  <button type="button" class="search-btn" data-action="palette" aria-label="Schnellsuche öffnen">
+    <i class="ti ti-search"></i><span>Suchen …</span><kbd>Strg K</kbd>
+  </button>
   <div class="topbar-right">
-    <span class="tb-hide" id="sheet-status">Sheet: --</span>
-    <span class="signal" id="cloud-dot" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-    <span id="cloud-status" class="tb-hide-sm">OFFLINE</span>
+    <div class="status-pill" title="Verbindungsstatus">
+      <span class="signal" id="cloud-dot" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+      <span id="cloud-status">OFFLINE</span>
+      <span class="sep tb-hide"></span>
+      <span id="sheet-status" class="tb-hide">Sheet: --</span>
+    </div>
+    <button type="button" class="btn icon ghost" data-action="theme" title="Hell / Dunkel umschalten" aria-label="Hell / Dunkel umschalten"><i class="ti ti-sun theme-light-icon"></i><i class="ti ti-moon theme-dark-icon"></i></button>
     <div id="user-menu-wrap" class="user-menu">
       <button type="button" class="user-btn" data-action="user-menu" aria-haspopup="true" title="Konto-Menü">
         <span id="user-avatar-wrap"></span><span id="user-chip"></span><i class="ti ti-chevron-down"></i>
@@ -95,93 +210,67 @@
         </div>
         <button type="button" class="dd-item" data-action="my-profile"><i class="ti ti-user-circle"></i> Mein Profil</button>
         <button type="button" class="dd-item" data-action="own-password"><i class="ti ti-key"></i> Passwort ändern</button>
+        <button type="button" class="dd-item" data-action="theme"><i class="ti ti-contrast"></i> Hell / Dunkel</button>
         <button type="button" class="dd-item danger" data-action="logout"><i class="ti ti-logout"></i> Abmelden</button>
       </div>
     </div>
-    <span id="clk" class="clock tb-hide-sm">00:00:00</span>
   </div>
 </header>
-
-<div class="layout">
-<div class="sb-backdrop" data-action="sidebar-close"></div>
-<nav class="sb" aria-label="Hauptnavigation">
-  <div class="sb-logo">
-    <div class="emblem">FIB</div>
-    <div class="sb-title">Personalabt.</div>
-    <div class="sb-sub">GrandRP DE01</div>
-  </div>
-  <div class="nv"><div class="nl">Übersicht</div>
-    <button class="ni" data-action="nav" data-arg="dash" data-view="dash"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></button>
-    <button class="ni" data-action="nav" data-arg="ma" data-view="ma"><i class="ti ti-users"></i><span>Mitarbeiterverzeichnis</span></button>
-    <button class="ni" data-action="nav" data-arg="kl" data-view="kl"><i class="ti ti-shield-lock"></i><span>Klassifizierung</span></button>
-  </div>
-  <div class="nv"><div class="nl">Abteilungen</div>
-    <div class="nl-sub" data-roles="hr">HR</div>
-    <button class="ni" data-roles="hr" data-action="nav" data-arg="rang" data-view="rang"><i class="ti ti-award"></i><span>Ranganpassung</span></button>
-    <button class="ni" data-roles="hr" data-action="nav" data-arg="ein" data-view="ein"><i class="ti ti-user-plus"></i><span>Einstellung</span></button>
-    <button class="ni" data-roles="hr" data-action="nav" data-arg="kue" data-view="kue"><i class="ti ti-user-minus"></i><span>Kündigung</span></button>
-    <button class="ni" data-roles="hr" data-action="nav" data-arg="san" data-view="san"><i class="ti ti-gavel"></i><span>Sanktion</span></button>
-    <button class="ni" data-roles="hr" data-action="nav" data-arg="pa" data-view="pa"><i class="ti ti-id-badge"></i><span>Personalakte</span></button>
-    <button class="ni" data-roles="hr" data-action="nav" data-arg="az" data-view="az"><i class="ti ti-file-certificate"></i><span>AZ-System</span></button>
-    <div class="nl-sub" data-roles="fibco">FIBCO</div>
-    <button class="ni" data-roles="fibco" data-action="nav" data-arg="fibco" data-view="fibco"><i class="ti ti-folder-open"></i><span>Fallakten</span></button>
-    <button class="ni" data-roles="fibco" data-action="nav-members" data-arg="fibco" data-view="fibco" data-tab="members"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
-    <div class="nl-sub" data-roles="cid">CID</div>
-    <button class="ni" data-roles="cid" data-action="nav" data-arg="cid" data-view="cid"><i class="ti ti-microscope"></i><span>Beweise</span></button>
-    <button class="ni" data-roles="cid" data-action="nav-members" data-arg="cid" data-view="cid" data-tab="members"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
-    <div class="nl-sub" data-roles="td">TD</div>
-    <button class="ni" data-roles="td" data-action="nav" data-arg="td" data-view="td"><i class="ti ti-school"></i><span>Ausbildung</span></button>
-    <button class="ni" data-roles="td" data-action="nav-members" data-arg="td" data-view="td" data-tab="members"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
-    <div class="nl-sub" data-roles="cirg">CIRG</div>
-    <button class="ni" data-roles="cirg" data-action="nav" data-arg="cirg" data-view="cirg"><i class="ti ti-siren"></i><span>Events</span></button>
-    <button class="ni" data-roles="cirg" data-action="nav-members" data-arg="cirg" data-view="cirg" data-tab="members"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
-    <div class="nl-sub" data-roles="law">LAW</div>
-    <button class="ni" data-roles="law" data-action="nav" data-arg="law" data-view="law"><i class="ti ti-scale"></i><span>Aktensystem</span></button>
-    <button class="ni" data-roles="law" data-action="nav-members" data-arg="law" data-view="law" data-tab="members"><i class="ti ti-users-group"></i><span>Mitglieder</span></button>
-  </div>
-  <div class="nv"><div class="nl">Account</div>
-    <button class="ni" data-action="nav" data-arg="profil" data-view="profil"><i class="ti ti-user-circle"></i><span>Mein Profil</span></button>
-    <button class="ni" data-roles="admin" data-action="nav" data-arg="benutzer" data-view="benutzer"><i class="ti ti-user-cog"></i><span>Benutzerverwaltung</span></button>
-  </div>
-  <div class="nv"><div class="nl">System</div>
-    <button class="ni" data-roles="hr" data-action="nav" data-arg="tpl" data-view="tpl"><i class="ti ti-template"></i><span>Vorlagen-Editor</span></button>
-    <button class="ni" data-action="nav" data-arg="cfg" data-view="cfg"><i class="ti ti-settings"></i><span>Einstellungen</span></button>
-  </div>
-</nav>
 
 <main class="main">
 
 <!-- ===================== DASHBOARD ===================== -->
 <section class="view" id="v-dash">
-  <div class="mh"><h1>Personalabteilung</h1><span class="badge">ÜBERSICHT</span></div>
+  <div class="hero">
+    <div>
+      <p class="hero-date" id="dash-date"></p>
+      <h1 class="hero-title"><span id="dash-greet">Willkommen</span>, <span id="dash-name" class="accent">--</span></h1>
+      <p class="hero-sub">Personalabteilung des Federal Investigation Bureau · GrandRP DE01</p>
+    </div>
+    <div class="hero-side">
+      <span class="clock-lg" id="clk">00:00:00</span>
+      <button class="btn" data-action="palette"><i class="ti ti-search"></i> Schnellsuche</button>
+    </div>
+  </div>
+
   <div class="srow">
-    <div class="sc"><div class="lbl">Gesamtstärke</div><div class="val" id="dash-count">--</div><div class="sub">Agenten</div></div>
-    <div class="sc"><div class="lbl">Abteilungen</div><div class="val" id="dash-depcount">--</div><div class="sub">Aktiv</div></div>
-    <div class="sc"><div class="lbl">Führungsränge</div><div class="val" id="dash-lead">--</div><div class="sub">Ränge 28–30</div></div>
-    <div class="sc"><div class="lbl">Angemeldet als</div><div class="val sm" id="dash-user">--</div><div class="sub" id="dash-roles">--</div></div>
+    <div class="sc"><span class="sc-icon"><i class="ti ti-users"></i></span><div><div class="lbl">Gesamtstärke</div><div class="val" id="dash-count">--</div><div class="sub">Agenten im Verzeichnis</div></div></div>
+    <div class="sc"><span class="sc-icon"><i class="ti ti-star"></i></span><div><div class="lbl">Führungsränge</div><div class="val" id="dash-lead">--</div><div class="sub">Ränge 28–30</div></div></div>
+    <div class="sc"><span class="sc-icon green"><i class="ti ti-certificate"></i></span><div><div class="lbl">Ausbildungsquote</div><div class="val" id="dash-train">--</div><div class="sub">bestandene Ausbildungen</div></div></div>
+    <div class="sc"><span class="sc-icon red"><i class="ti ti-alert-triangle"></i></span><div><div class="lbl">Aktive Strikes</div><div class="val" id="dash-strikes">--</div><div class="sub">Agenten mit Strike</div></div></div>
   </div>
+
+  <div class="dash-grid">
+    <div class="pan">
+      <div class="pan-h"><div class="pan-t"><i class="ti ti-chart-bar"></i> Abteilungen</div><button class="btn sm ghost" data-action="nav" data-arg="ma">Verzeichnis <i class="ti ti-arrow-right"></i></button></div>
+      <div class="pan-b"><div class="dept-bars" id="dash-depts"></div></div>
+    </div>
+    <div class="pan">
+      <div class="pan-h"><div class="pan-t"><i class="ti ti-activity"></i> Letzte Aktivität</div></div>
+      <div class="pan-b"><ul class="activity" id="dash-activity"></ul></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Schnellzugriff</h2>
   <div class="mg">
-    <button class="mc" data-roles="hr" data-action="nav" data-arg="rang"><span class="mt"><i class="ti ti-award"></i>Ranganpassung</span><span class="md">Beförderungen &amp; Degradierungen</span></button>
-    <button class="mc" data-roles="hr" data-action="nav" data-arg="ein"><span class="mt"><i class="ti ti-user-plus"></i>Einstellung</span><span class="md">Neue Mitarbeiter aufnehmen</span></button>
-    <button class="mc" data-roles="hr" data-action="nav" data-arg="kue"><span class="mt"><i class="ti ti-user-minus"></i>Kündigung</span><span class="md">Entlassungen mit Begründung</span></button>
-    <button class="mc" data-roles="hr" data-action="nav" data-arg="az"><span class="mt"><i class="ti ti-file-certificate"></i>AZ-System</span><span class="md">Arbeitszeugnisse ausstellen</span></button>
-    <button class="mc" data-roles="hr" data-action="nav" data-arg="san"><span class="mt"><i class="ti ti-gavel"></i>Sanktion</span><span class="md">Verwarnungen &amp; Sanktionen</span></button>
-    <button class="mc" data-roles="hr" data-action="nav" data-arg="pa"><span class="mt"><i class="ti ti-id-badge"></i>Personalakte</span><span class="md">Personalakten erstellen</span></button>
-    <button class="mc" data-action="nav" data-arg="kl"><span class="mt"><i class="ti ti-shield-lock"></i>Klassifizierung</span><span class="md">Organisationsübergreifende Kontakte</span></button>
-    <button class="mc" data-action="nav" data-arg="ma"><span class="mt"><i class="ti ti-users"></i>Mitarbeiterverzeichnis</span><span class="md">Alle Agenten, live aus dem Sheet</span></button>
-  </div>
-  <div class="pan">
-    <div class="pan-h"><div class="pan-t">Abteilungsübersicht</div><button class="btn sm" data-action="nav" data-arg="ma"><i class="ti ti-external-link"></i> Verzeichnis</button></div>
-    <div class="tbl-wrap"><table class="tbl cards">
-      <thead><tr><th>Abteilung</th><th>Mitglieder</th><th>Anteil</th></tr></thead>
-      <tbody id="dash-depts"></tbody>
-    </table></div>
+    <button class="mc" data-roles="hr" data-action="nav" data-arg="rang"><span class="mc-icon"><i class="ti ti-award"></i></span><span><span class="mt">Ranganpassung</span><span class="md">Beförderungen &amp; Degradierungen</span></span></button>
+    <button class="mc" data-roles="hr" data-action="nav" data-arg="ein"><span class="mc-icon"><i class="ti ti-user-plus"></i></span><span><span class="mt">Einstellung</span><span class="md">Neue Mitarbeiter aufnehmen</span></span></button>
+    <button class="mc" data-roles="hr" data-action="nav" data-arg="kue"><span class="mc-icon"><i class="ti ti-user-minus"></i></span><span><span class="mt">Kündigung</span><span class="md">Entlassungen mit Begründung</span></span></button>
+    <button class="mc" data-roles="hr" data-action="nav" data-arg="san"><span class="mc-icon"><i class="ti ti-gavel"></i></span><span><span class="mt">Sanktion</span><span class="md">Verwarnungen &amp; Sanktionen</span></span></button>
+    <button class="mc" data-roles="hr" data-action="nav" data-arg="pa"><span class="mc-icon"><i class="ti ti-id-badge"></i></span><span><span class="mt">Personalakte</span><span class="md">Personalakten erstellen</span></span></button>
+    <button class="mc" data-roles="hr" data-action="nav" data-arg="az"><span class="mc-icon"><i class="ti ti-file-certificate"></i></span><span><span class="mt">AZ-System</span><span class="md">Arbeitszeugnisse ausstellen</span></span></button>
+    <button class="mc" data-roles="fibco" data-action="nav" data-arg="fibco"><span class="mc-icon"><i class="ti ti-folder-open"></i></span><span><span class="mt">FIBCO Fallakten</span><span class="md">Fälle anlegen &amp; verwalten</span></span></button>
+    <button class="mc" data-roles="cid" data-action="nav" data-arg="cid"><span class="mc-icon"><i class="ti ti-microscope"></i></span><span><span class="mt">CID Beweise</span><span class="md">Beweise erfassen</span></span></button>
+    <button class="mc" data-roles="td" data-action="nav" data-arg="td"><span class="mc-icon"><i class="ti ti-school"></i></span><span><span class="mt">TD Ausbildung</span><span class="md">Ausbildungen eintragen</span></span></button>
+    <button class="mc" data-roles="cirg" data-action="nav" data-arg="cirg"><span class="mc-icon"><i class="ti ti-siren"></i></span><span><span class="mt">CIRG Events</span><span class="md">Events &amp; Logs</span></span></button>
+    <button class="mc" data-roles="law" data-action="nav" data-arg="law"><span class="mc-icon"><i class="ti ti-scale"></i></span><span><span class="mt">LAW Aktensystem</span><span class="md">Mandanten-Akten</span></span></button>
+    <button class="mc" data-action="nav" data-arg="kl"><span class="mc-icon"><i class="ti ti-shield-lock"></i></span><span><span class="mt">Klassifizierung</span><span class="md">Kontakte anderer Organisationen</span></span></button>
   </div>
 </section>
 
 <!-- ===================== MITARBEITERVERZEICHNIS ===================== -->
 <section class="view" id="v-ma">
-  <div class="mh"><h1>Mitarbeiterverzeichnis</h1><span class="badge" id="ma-badge">-- AGENTEN</span></div>
+  <div class="mh"><div><h1>Mitarbeiterverzeichnis</h1><p class="mh-sub">Live aus dem Google Sheet · aktualisiert alle 30 Sekunden</p></div><span class="badge" id="ma-badge">-- AGENTEN</span></div>
   <div class="toolbar">
     <div class="sw grow"><i class="ti ti-search"></i>
       <input class="fi si" id="ma-search" placeholder="Name, Pass-ID, Rang, DN, Abteilung …" data-input="ma-filter" aria-label="Suche">
@@ -194,7 +283,7 @@
     <button class="btn" data-action="open-sheet"><i class="ti ti-table"></i> Im Sheet bearbeiten</button>
   </div>
   <div class="pan">
-    <div class="pan-h"><div class="pan-t">Mitarbeiterliste</div><span class="count" id="ma-count">--</span></div>
+    <div class="pan-h"><div class="pan-t"><i class="ti ti-list"></i> Mitarbeiterliste</div><span class="count" id="ma-count">--</span></div>
     <div class="tbl-wrap tall"><table class="tbl cards">
       <thead><tr><th>Pass-ID</th><th>Name</th><th>Rang</th><th>DN</th><th>Division</th><th>Abteilung</th><th>Ausbildung</th><th>Strike</th><th>Eintritt</th></tr></thead>
       <tbody id="ma-body"></tbody>
@@ -202,158 +291,157 @@
     <div id="ma-empty" class="empty" hidden>Keine Treffer.</div>
     <div class="pgr" id="ma-pgr"></div>
   </div>
-  <p class="hint">Das Verzeichnis kommt live aus dem Google Sheet (alle 30 Sekunden). Personen werden im Sheet geändert; hier lässt sich die Reihenfolge per Drag &amp; Drop festlegen.</p>
+  <p class="hint">Tipp: Auf einen Namen klicken öffnet die Personenkarte. Die Reihenfolge lässt sich per Drag &amp; Drop festlegen.</p>
 </section>
 
-<!-- ===================== RANGANPASSUNG ===================== -->
+<!-- ===================== HR-MODULE (Formular links, Discord-Vorschau rechts) ===================== -->
 <section class="view" id="v-rang" data-roles="hr">
-  <div class="mh"><h1>Ranganpassung</h1><span class="badge">HR</span></div>
-  <div class="pan"><div class="pan-b">
-    <div data-lookup="ra"></div>
-    <div id="ra-fields" hidden>
-      <div class="edit-card">
-        <div class="f"><label class="fl" for="ra-name">Name</label><input class="fi" id="ra-name" data-input="preview" data-arg="ra"></div>
-        <div class="f"><label class="fl" for="ra-dn">Dienstnr.</label><input class="fi" id="ra-dn" data-input="preview" data-arg="ra"></div>
-        <div class="f"><label class="fl" for="ra-abt">Abteilung</label><input class="fi" id="ra-abt" readonly></div>
-        <div class="f"><label class="fl" for="ra-strike">Strike</label><input class="fi" id="ra-strike" readonly></div>
+  <div class="mh"><div><h1>Ranganpassung</h1><p class="mh-sub">Beförderung oder Degradierung bekanntgeben</p></div><span class="badge">HR</span></div>
+  <div class="hr-grid">
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-forms"></i> Angaben</div></div><div class="pan-b">
+      <div data-lookup="ra"></div>
+      <div class="lookup-empty" id="ra-hint"><i class="ti ti-user-search"></i> Person über Pass-ID oder Namen suchen, um die Felder zu füllen.</div>
+      <div id="ra-fields" hidden>
+        <div class="edit-card">
+          <div class="f"><label class="fl" for="ra-name">Name</label><input class="fi" id="ra-name" data-input="preview" data-arg="ra"></div>
+          <div class="f"><label class="fl" for="ra-dn">Dienstnr.</label><input class="fi" id="ra-dn" data-input="preview" data-arg="ra"></div>
+          <div class="f"><label class="fl" for="ra-abt">Abteilung</label><input class="fi" id="ra-abt" readonly></div>
+          <div class="f"><label class="fl" for="ra-strike">Strike</label><input class="fi" id="ra-strike" readonly></div>
+        </div>
+        <div class="ir">
+          <div class="f"><label class="fl" for="ra-old">Alter Rang</label><select class="fi" id="ra-old" data-options="ranks" data-placeholder="-- wählen --" data-change="preview" data-arg="ra"></select></div>
+          <div class="f"><label class="fl" for="ra-new">Neuer Rang</label><select class="fi" id="ra-new" data-options="ranks" data-placeholder="-- wählen --" data-change="preview" data-arg="ra"></select></div>
+        </div>
+        <div class="f"><label class="fl" for="ra-grund">Begründung</label><textarea class="fi" id="ra-grund" rows="3" placeholder="Begründung …" data-input="preview" data-arg="ra"></textarea></div>
       </div>
-      <div class="ir">
-        <div class="f"><label class="fl" for="ra-old">Alter Rang</label><select class="fi" id="ra-old" data-options="ranks" data-placeholder="-- wählen --" data-change="preview" data-arg="ra"></select></div>
-        <div class="f"><label class="fl" for="ra-new">Neuer Rang</label><select class="fi" id="ra-new" data-options="ranks" data-placeholder="-- wählen --" data-change="preview" data-arg="ra"></select></div>
-      </div>
-      <div class="f"><label class="fl" for="ra-grund">Begründung</label><input class="fi" id="ra-grund" placeholder="Begründung …" data-input="preview" data-arg="ra"></div>
-      <div class="pl">Vorschau</div>
-      <div class="ob" id="ra-pre"></div>
-      <div class="brow"><button class="btn ok" data-action="copy" data-arg="ra-pre"><i class="ti ti-copy"></i> Nachricht kopieren</button></div>
-    </div>
-  </div></div>
+    </div></div>
+    <div data-preview="ra"></div>
+  </div>
 </section>
 
-<!-- ===================== EINSTELLUNG ===================== -->
 <section class="view" id="v-ein" data-roles="hr">
-  <div class="mh"><h1>Einstellung</h1><span class="badge">HR</span></div>
-  <div class="pan"><div class="pan-b">
-    <div data-lookup="es"></div>
-    <div id="es-fields" hidden>
-      <div class="edit-card">
-        <div class="f"><label class="fl" for="es-name">Name</label><input class="fi" id="es-name" data-input="preview" data-arg="es"></div>
-        <div class="f"><label class="fl" for="es-dn">Dienstnr.</label><input class="fi" id="es-dn" data-input="preview" data-arg="es"></div>
+  <div class="mh"><div><h1>Einstellung</h1><p class="mh-sub">Neue Mitarbeiter im Bureau willkommen heißen</p></div><span class="badge">HR</span></div>
+  <div class="hr-grid">
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-forms"></i> Angaben</div></div><div class="pan-b">
+      <div data-lookup="es"></div>
+      <div class="lookup-empty" id="es-hint"><i class="ti ti-user-search"></i> Person über Pass-ID oder Namen suchen, um die Felder zu füllen.</div>
+      <div id="es-fields" hidden>
+        <div class="edit-card">
+          <div class="f"><label class="fl" for="es-name">Name</label><input class="fi" id="es-name" data-input="preview" data-arg="es"></div>
+          <div class="f"><label class="fl" for="es-dn">Dienstnr.</label><input class="fi" id="es-dn" data-input="preview" data-arg="es"></div>
+        </div>
+        <div class="ir">
+          <div class="f"><label class="fl" for="es-abt">Abteilung</label>
+            <select class="fi" id="es-abt" data-change="preview" data-arg="es">
+              <option value="">-- wählen --</option>
+              <option>Human Resources</option><option>Critical Incident Response Group</option>
+              <option>Criminal Investigative Division</option><option>Corruption Office</option>
+              <option>Public Relations</option><option>Training Division</option>
+              <option>LAW Department</option><option>Internal Affairs</option>
+            </select>
+          </div>
+          <div class="f"><label class="fl" for="es-rang">Einstellungsrang</label><select class="fi" id="es-rang" data-options="ranks" data-placeholder="-- wählen --" data-change="preview" data-arg="es"></select></div>
+        </div>
       </div>
-      <div class="ir">
-        <div class="f"><label class="fl" for="es-abt">Abteilung</label>
-          <select class="fi" id="es-abt" data-change="preview" data-arg="es">
+    </div></div>
+    <div data-preview="es"></div>
+  </div>
+</section>
+
+<section class="view" id="v-kue" data-roles="hr">
+  <div class="mh"><div><h1>Kündigung</h1><p class="mh-sub">Entlassung mit Begründung bekanntgeben</p></div><span class="badge">HR</span></div>
+  <div class="hr-grid">
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-forms"></i> Angaben</div></div><div class="pan-b">
+      <div data-lookup="ku"></div>
+      <div class="lookup-empty" id="ku-hint"><i class="ti ti-user-search"></i> Person über Pass-ID oder Namen suchen, um die Felder zu füllen.</div>
+      <div id="ku-fields" hidden>
+        <div class="edit-card">
+          <div class="f"><label class="fl" for="ku-name">Name</label><input class="fi" id="ku-name" data-input="preview" data-arg="ku"></div>
+          <div class="f"><label class="fl" for="ku-dn">Dienstnr.</label><input class="fi" id="ku-dn" data-input="preview" data-arg="ku"></div>
+          <div class="f"><label class="fl" for="ku-rang">Rang</label><input class="fi" id="ku-rang" data-input="preview" data-arg="ku"></div>
+          <div class="f"><label class="fl" for="ku-abt">Abteilung</label><input class="fi" id="ku-abt" readonly></div>
+        </div>
+        <div class="f"><label class="fl" for="ku-grund">Grund der Kündigung</label><textarea class="fi" id="ku-grund" rows="3" placeholder="Begründung …" data-input="preview" data-arg="ku"></textarea></div>
+      </div>
+    </div></div>
+    <div data-preview="ku"></div>
+  </div>
+</section>
+
+<section class="view" id="v-san" data-roles="hr">
+  <div class="mh"><div><h1>Sanktion</h1><p class="mh-sub">Verwarnungen und Sanktionen ausstellen</p></div><span class="badge">HR</span></div>
+  <div class="hr-grid">
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-forms"></i> Angaben</div></div><div class="pan-b">
+      <div data-lookup="sa"></div>
+      <div class="lookup-empty" id="sa-hint"><i class="ti ti-user-search"></i> Person über Pass-ID oder Namen suchen, um die Felder zu füllen.</div>
+      <div id="sa-fields" hidden>
+        <div class="edit-card">
+          <div class="f"><label class="fl" for="sa-name">Name</label><input class="fi" id="sa-name" data-input="preview" data-arg="sa"></div>
+          <div class="f"><label class="fl" for="sa-dn">Dienstnr.</label><input class="fi" id="sa-dn" data-input="preview" data-arg="sa"></div>
+          <div class="f"><label class="fl" for="sa-rang">Rang</label><input class="fi" id="sa-rang" readonly></div>
+          <div class="f"><label class="fl" for="sa-strike">Strike</label><input class="fi" id="sa-strike" readonly></div>
+        </div>
+        <div class="f"><label class="fl" for="sa-art">Sanktionsart</label>
+          <select class="fi" id="sa-art" data-change="preview" data-arg="sa">
             <option value="">-- wählen --</option>
-            <option>Human Resources</option><option>Critical Incident Response Group</option>
-            <option>Criminal Investigative Division</option><option>Corruption Office</option>
-            <option>Public Relations</option><option>Training Division</option>
-            <option>LAW Department</option><option>Internal Affairs</option>
+            <option>Mündliche Verwarnung</option><option>Schriftliche Verwarnung</option>
+            <option>Gehaltskürzung</option><option>Versetzung</option>
+            <option>Suspendierung</option><option>Zwangspensionierung</option>
           </select>
         </div>
-        <div class="f"><label class="fl" for="es-rang">Einstellungsrang</label><select class="fi" id="es-rang" data-options="ranks" data-placeholder="-- wählen --" data-change="preview" data-arg="es"></select></div>
+        <div class="f"><label class="fl" for="sa-grund">Begründung</label><textarea class="fi" id="sa-grund" rows="3" placeholder="Begründung …" data-input="preview" data-arg="sa"></textarea></div>
       </div>
-      <div class="pl">Vorschau</div>
-      <div class="ob" id="es-pre"></div>
-      <div class="brow"><button class="btn ok" data-action="copy" data-arg="es-pre"><i class="ti ti-copy"></i> Nachricht kopieren</button></div>
-    </div>
-  </div></div>
+    </div></div>
+    <div data-preview="sa"></div>
+  </div>
 </section>
 
-<!-- ===================== KÜNDIGUNG ===================== -->
-<section class="view" id="v-kue" data-roles="hr">
-  <div class="mh"><h1>Kündigung</h1><span class="badge">HR</span></div>
-  <div class="pan"><div class="pan-b">
-    <div data-lookup="ku"></div>
-    <div id="ku-fields" hidden>
-      <div class="edit-card">
-        <div class="f"><label class="fl" for="ku-name">Name</label><input class="fi" id="ku-name" data-input="preview" data-arg="ku"></div>
-        <div class="f"><label class="fl" for="ku-dn">Dienstnr.</label><input class="fi" id="ku-dn" data-input="preview" data-arg="ku"></div>
-        <div class="f"><label class="fl" for="ku-rang">Rang</label><input class="fi" id="ku-rang" data-input="preview" data-arg="ku"></div>
-        <div class="f"><label class="fl" for="ku-abt">Abteilung</label><input class="fi" id="ku-abt" readonly></div>
-      </div>
-      <div class="f"><label class="fl" for="ku-grund">Grund der Kündigung</label><textarea class="fi" id="ku-grund" rows="3" placeholder="Begründung …" data-input="preview" data-arg="ku"></textarea></div>
-      <div class="pl">Vorschau</div>
-      <div class="ob" id="ku-pre"></div>
-      <div class="brow"><button class="btn ok" data-action="copy" data-arg="ku-pre"><i class="ti ti-copy"></i> Nachricht kopieren</button></div>
-    </div>
-  </div></div>
-</section>
-
-<!-- ===================== SANKTION ===================== -->
-<section class="view" id="v-san" data-roles="hr">
-  <div class="mh"><h1>Sanktion</h1><span class="badge">HR</span></div>
-  <div class="pan"><div class="pan-b">
-    <div data-lookup="sa"></div>
-    <div id="sa-fields" hidden>
-      <div class="edit-card">
-        <div class="f"><label class="fl" for="sa-name">Name</label><input class="fi" id="sa-name" data-input="preview" data-arg="sa"></div>
-        <div class="f"><label class="fl" for="sa-dn">Dienstnr.</label><input class="fi" id="sa-dn" data-input="preview" data-arg="sa"></div>
-        <div class="f"><label class="fl" for="sa-rang">Rang</label><input class="fi" id="sa-rang" readonly></div>
-        <div class="f"><label class="fl" for="sa-strike">Strike</label><input class="fi" id="sa-strike" readonly></div>
-      </div>
-      <div class="f"><label class="fl" for="sa-art">Sanktionsart</label>
-        <select class="fi" id="sa-art" data-change="preview" data-arg="sa">
-          <option value="">-- wählen --</option>
-          <option>Mündliche Verwarnung</option><option>Schriftliche Verwarnung</option>
-          <option>Gehaltskürzung</option><option>Versetzung</option>
-          <option>Suspendierung</option><option>Zwangspensionierung</option>
-        </select>
-      </div>
-      <div class="f"><label class="fl" for="sa-grund">Begründung</label><textarea class="fi" id="sa-grund" rows="3" placeholder="Begründung …" data-input="preview" data-arg="sa"></textarea></div>
-      <div class="pl">Vorschau</div>
-      <div class="ob" id="sa-pre"></div>
-      <div class="brow"><button class="btn ok" data-action="copy" data-arg="sa-pre"><i class="ti ti-copy"></i> Nachricht kopieren</button></div>
-    </div>
-  </div></div>
-</section>
-
-<!-- ===================== PERSONALAKTE ===================== -->
 <section class="view" id="v-pa" data-roles="hr">
-  <div class="mh"><h1>Personalakte</h1><span class="badge">HR</span></div>
-  <div class="pan"><div class="pan-b">
-    <div data-lookup="pa"></div>
-    <div id="pa-fields" hidden>
-      <div class="edit-card">
-        <div class="f"><label class="fl" for="pa-name">Name</label><input class="fi" id="pa-name" data-input="preview" data-arg="pa"></div>
-        <div class="f"><label class="fl" for="pa-dn">Dienstnr.</label><input class="fi" id="pa-dn" data-input="preview" data-arg="pa"></div>
-        <div class="f"><label class="fl" for="pa-rang">Rang</label><input class="fi" id="pa-rang" data-input="preview" data-arg="pa"></div>
-        <div class="f"><label class="fl" for="pa-abt">Abteilung</label><input class="fi" id="pa-abt" data-input="preview" data-arg="pa"></div>
-        <div class="f"><label class="fl" for="pa-strike">Strike</label><input class="fi" id="pa-strike" readonly></div>
+  <div class="mh"><div><h1>Personalakte</h1><p class="mh-sub">Personalakte aus dem Verzeichnis erstellen</p></div><span class="badge">HR</span></div>
+  <div class="hr-grid">
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-forms"></i> Angaben</div></div><div class="pan-b">
+      <div data-lookup="pa"></div>
+      <div class="lookup-empty" id="pa-hint"><i class="ti ti-user-search"></i> Person über Pass-ID oder Namen suchen, um die Felder zu füllen.</div>
+      <div id="pa-fields" hidden>
+        <div class="edit-card">
+          <div class="f"><label class="fl" for="pa-name">Name</label><input class="fi" id="pa-name" data-input="preview" data-arg="pa"></div>
+          <div class="f"><label class="fl" for="pa-dn">Dienstnr.</label><input class="fi" id="pa-dn" data-input="preview" data-arg="pa"></div>
+          <div class="f"><label class="fl" for="pa-rang">Rang</label><input class="fi" id="pa-rang" data-input="preview" data-arg="pa"></div>
+          <div class="f"><label class="fl" for="pa-abt">Abteilung</label><input class="fi" id="pa-abt" data-input="preview" data-arg="pa"></div>
+          <div class="f"><label class="fl" for="pa-strike">Strike</label><input class="fi" id="pa-strike" readonly></div>
+          <div class="f"><label class="fl" for="pa-datum">Eintrittsdatum</label><input class="fi" type="date" id="pa-datum" data-change="preview" data-arg="pa"></div>
+        </div>
       </div>
-      <div class="f narrow"><label class="fl" for="pa-datum">Eintrittsdatum</label><input class="fi" type="date" id="pa-datum" data-change="preview" data-arg="pa"></div>
-      <div class="pl">Vorschau</div>
-      <div class="ob" id="pa-pre"></div>
-      <div class="brow"><button class="btn ok" data-action="copy" data-arg="pa-pre"><i class="ti ti-copy"></i> Nachricht kopieren</button></div>
-    </div>
-  </div></div>
+    </div></div>
+    <div data-preview="pa"></div>
+  </div>
 </section>
 
-<!-- ===================== AZ-SYSTEM ===================== -->
 <section class="view" id="v-az" data-roles="hr">
-  <div class="mh"><h1>AZ-System</h1><span class="badge">ARBEITSZEUGNIS</span></div>
-  <div class="pan"><div class="pan-b">
-    <p class="callout">Das Federal Investigation Bureau (FIB) übermittelt hiermit das Arbeitszeugnis des folgenden Mitarbeiters.</p>
-    <div data-lookup="az"></div>
-    <div id="az-fields" hidden>
-      <div class="edit-card">
-        <div class="f"><label class="fl" for="az-name">Name</label><input class="fi" id="az-name" data-input="preview" data-arg="az"></div>
-        <div class="f"><label class="fl" for="az-pass">Pass-ID</label><input class="fi" id="az-pass" data-input="preview" data-arg="az"></div>
-        <div class="f"><label class="fl" for="az-rang">Rang</label><input class="fi" id="az-rang" data-input="preview" data-arg="az"></div>
-        <div class="f"><label class="fl" for="az-abt">Abteilung</label><input class="fi" id="az-abt" readonly></div>
+  <div class="mh"><div><h1>AZ-System</h1><p class="mh-sub">Arbeitszeugnis übermitteln – Zeugnis als Anhang beifügen</p></div><span class="badge">ARBEITSZEUGNIS</span></div>
+  <div class="hr-grid">
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-forms"></i> Angaben</div></div><div class="pan-b">
+      <div data-lookup="az"></div>
+      <div class="lookup-empty" id="az-hint"><i class="ti ti-user-search"></i> Person über Pass-ID oder Namen suchen, um die Felder zu füllen.</div>
+      <div id="az-fields" hidden>
+        <div class="edit-card">
+          <div class="f"><label class="fl" for="az-name">Name</label><input class="fi" id="az-name" data-input="preview" data-arg="az"></div>
+          <div class="f"><label class="fl" for="az-pass">Pass-ID</label><input class="fi" id="az-pass" data-input="preview" data-arg="az"></div>
+          <div class="f"><label class="fl" for="az-rang">Rang</label><input class="fi" id="az-rang" data-input="preview" data-arg="az"></div>
+          <div class="f"><label class="fl" for="az-abt">Abteilung</label><input class="fi" id="az-abt" readonly></div>
+          <div class="f"><label class="fl" for="az-datum">Datum der Kündigung</label><input class="fi" type="date" id="az-datum" data-change="preview" data-arg="az"></div>
+        </div>
       </div>
-      <div class="f narrow"><label class="fl" for="az-datum">Datum der Kündigung</label><input class="fi" type="date" id="az-datum" data-change="preview" data-arg="az"></div>
-      <div class="pl">Vorschau</div>
-      <div class="ob" id="az-pre"></div>
-      <div class="brow"><button class="btn ok" data-action="copy" data-arg="az-pre"><i class="ti ti-copy"></i> Nachricht kopieren</button></div>
-      <p class="hint">Arbeitszeugnis als Anhang beifügen!</p>
-    </div>
-  </div></div>
+    </div></div>
+    <div data-preview="az"></div>
+  </div>
 </section>
 
 <!-- ===================== KLASSIFIZIERUNG ===================== -->
 <section class="view" id="v-kl">
-  <div class="mh"><h1>Klassifizierung</h1><span class="badge">ORGA-KONTAKTE</span></div>
-  <div class="pan">
-    <div class="pan-h"><div class="pan-t">Neuen Eintrag anlegen</div></div>
+  <div class="mh"><div><h1>Klassifizierung</h1><p class="mh-sub">Kontakte anderer Organisationen</p></div><span class="badge">ORGA-KONTAKTE</span></div>
+  <details class="pan collapsible-pan" id="kl-form-pan" open>
+    <summary class="pan-h"><div class="pan-t"><i class="ti ti-plus"></i> Neuen Eintrag anlegen</div><i class="ti ti-chevron-down muted"></i></summary>
     <div class="pan-b">
       <div class="ir">
         <div class="f"><label class="fl" for="kl-orga">Organisation *</label><select class="fi" id="kl-orga" data-options="orgas" data-placeholder="-- wählen --"></select></div>
@@ -367,13 +455,13 @@
       <div class="f"><label class="fl" for="kl-info">Info</label><textarea class="fi" id="kl-info" rows="2" placeholder="Zusätzliche Infos, Notizen …"></textarea></div>
       <div class="brow"><button class="btn ok" data-action="kl-add"><i class="ti ti-plus"></i> Eintrag hinzufügen</button></div>
     </div>
-  </div>
+  </details>
   <div class="pan">
     <div class="pan-h">
-      <div class="pan-t" id="kl-list-title">Alle Einträge</div>
+      <div class="pan-t"><i class="ti ti-address-book"></i> <span id="kl-list-title">Alle Einträge</span></div>
       <div class="pan-tools">
         <div class="sw"><i class="ti ti-search"></i><input class="fi si sm" id="kl-search" placeholder="Suche …" data-input="kl-search" aria-label="Suche"></div>
-        <button class="btn sm" data-action="kl-copy-list" title="Liste für Discord kopieren (Nummern geschwärzt)"><i class="ti ti-clipboard-list"></i> Liste kopieren</button>
+        <button class="btn sm" data-action="kl-copy-list" title="Liste für Discord kopieren (Nummern geschwärzt)"><i class="ti ti-brand-discord"></i> Liste kopieren</button>
         <span class="count" id="kl-count"></span>
       </div>
     </div>
@@ -390,50 +478,15 @@
 
 <!-- ===================== FIBCO ===================== -->
 <section class="view" id="v-fibco" data-roles="fibco">
-  <div class="mh"><h1>FIBCO Fallakten</h1><span class="badge">ABTEILUNG</span></div>
+  <div class="mh"><div><h1>FIBCO Fallakten</h1><p class="mh-sub">Corruption Office · Fälle anlegen und verwalten</p></div><span class="badge">ABTEILUNG</span></div>
   <div class="orga-tabs">
-    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="fibco:main">Fallakten</button>
-    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="fibco:members">Mitglieder</button>
+    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="fibco:main"><i class="ti ti-folder-open"></i> Fallakten</button>
+    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="fibco:members"><i class="ti ti-users-group"></i> Mitglieder</button>
   </div>
   <div id="fibco-tab-main" class="dept-tabpanel stack">
     <div class="pan">
-      <div class="pan-h"><div class="pan-t">Neue Fallakte anlegen</div></div>
-      <div class="pan-b">
-        <div class="ir3">
-          <div class="f"><label class="fl" for="fc-name">Name *</label><input class="fi" id="fc-name" placeholder="Vor- u. Nachname" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-coid">CO-ID *</label><input class="fi" id="fc-coid" placeholder="z. B. CO-ID-1" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-tatdat">Datum der Straftat</label><input class="fi" type="date" id="fc-tatdat" data-change="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-codename">Codename</label><input class="fi" id="fc-codename" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-tel">Telefonnummer</label><input class="fi" id="fc-tel" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-behoerde">Behörde</label><input class="fi" id="fc-behoerde" placeholder="z. B. LSPD" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-familie">Familie / Gang</label><input class="fi" id="fc-familie" placeholder="z. B. The Families" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-reisepass">Reisepass</label><input class="fi" id="fc-reisepass" placeholder="Pass-ID" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-dienstausweis">Dienstausweis</label><input class="fi" id="fc-dienstausweis" placeholder="Ausweis-Nr." data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-personalakte">Personalakte (Link)</label><input class="fi" id="fc-personalakte" placeholder="https://…" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-pda-main">PDA Hauptseite (Link)</label><input class="fi" id="fc-pda-main" placeholder="https://…" data-input="fc-preview"></div>
-          <div class="f"><label class="fl" for="fc-pda-fz">PDA Fahrzeugliste (Link)</label><input class="fi" id="fc-pda-fz" placeholder="https://…" data-input="fc-preview"></div>
-        </div>
-        <hr class="divider">
-        <div class="ir">
-          <div class="f"><label class="fl" for="fc-vorfall">Vorfall — Am TT.MM.JJJJ um HH:MM Uhr …</label><textarea class="fi" id="fc-vorfall" rows="3" data-input="fc-preview"></textarea></div>
-          <div class="f"><label class="fl" for="fc-befragung">Befragung Tatverdächtiger</label><textarea class="fi" id="fc-befragung" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
-          <div class="f"><label class="fl" for="fc-zeugen">Zeugen / Aussagen</label><textarea class="fi" id="fc-zeugen" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
-          <div class="f"><label class="fl" for="fc-beweise">Beweissammlung</label><textarea class="fi" id="fc-beweise" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
-          <div class="f"><label class="fl" for="fc-tatvorwurf">Tatvorwurf</label><textarea class="fi" id="fc-tatvorwurf" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
-          <div class="f"><label class="fl" for="fc-schluss">Schlussbetrachtung</label><textarea class="fi" id="fc-schluss" rows="3" data-input="fc-preview"></textarea></div>
-        </div>
-        <div class="f narrow"><label class="fl" for="fc-status">Status</label><select class="fi" id="fc-status" data-options="case-status" data-change="fc-preview"></select></div>
-        <div class="pl">Vorschau</div>
-        <div class="ob tall" id="fc-pre"></div>
-        <div class="brow">
-          <button class="btn" data-action="copy" data-arg="fc-pre"><i class="ti ti-copy"></i> Vorlage kopieren</button>
-          <button class="btn ok" data-action="fc-add"><i class="ti ti-device-floppy"></i> Akte speichern</button>
-        </div>
-      </div>
-    </div>
-    <div class="pan">
       <div class="pan-h">
-        <div class="pan-t">Alle Fallakten</div>
+        <div class="pan-t"><i class="ti ti-folders"></i> Alle Fallakten</div>
         <div class="pan-tools">
           <select class="fi sm auto" id="fc-filter" data-options="case-status" data-placeholder="Alle Status" data-change="fc-filter" aria-label="Status-Filter"></select>
           <div class="sw"><i class="ti ti-search"></i><input class="fi si sm" id="fc-search" placeholder="Suche …" data-input="fc-filter" aria-label="Suche"></div>
@@ -446,20 +499,60 @@
       </table></div>
       <div id="fc-empty" class="empty" hidden>Keine Fallakten vorhanden.</div>
     </div>
+    <div class="hr-grid wide-left">
+      <div class="pan">
+        <div class="pan-h"><div class="pan-t"><i class="ti ti-file-plus"></i> Neue Fallakte anlegen</div></div>
+        <div class="pan-b">
+          <h3 class="form-section">Stammdaten</h3>
+          <div class="ir3">
+            <div class="f"><label class="fl" for="fc-name">Name *</label><input class="fi" id="fc-name" placeholder="Vor- u. Nachname" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-coid">CO-ID *</label><input class="fi" id="fc-coid" placeholder="z. B. CO-ID-1" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-tatdat">Datum der Straftat</label><input class="fi" type="date" id="fc-tatdat" data-change="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-codename">Codename</label><input class="fi" id="fc-codename" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-tel">Telefonnummer</label><input class="fi" id="fc-tel" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-behoerde">Behörde</label><input class="fi" id="fc-behoerde" placeholder="z. B. LSPD" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-familie">Familie / Gang</label><input class="fi" id="fc-familie" placeholder="z. B. The Families" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-reisepass">Reisepass</label><input class="fi" id="fc-reisepass" placeholder="Pass-ID" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-dienstausweis">Dienstausweis</label><input class="fi" id="fc-dienstausweis" placeholder="Ausweis-Nr." data-input="fc-preview"></div>
+          </div>
+          <h3 class="form-section">Links</h3>
+          <div class="ir3">
+            <div class="f"><label class="fl" for="fc-personalakte">Personalakte</label><input class="fi" id="fc-personalakte" placeholder="https://…" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-pda-main">PDA Hauptseite</label><input class="fi" id="fc-pda-main" placeholder="https://…" data-input="fc-preview"></div>
+            <div class="f"><label class="fl" for="fc-pda-fz">PDA Fahrzeugliste</label><input class="fi" id="fc-pda-fz" placeholder="https://…" data-input="fc-preview"></div>
+          </div>
+          <h3 class="form-section">Ermittlung</h3>
+          <div class="ir">
+            <div class="f"><label class="fl" for="fc-vorfall">Vorfall — Am TT.MM.JJJJ um HH:MM Uhr …</label><textarea class="fi" id="fc-vorfall" rows="3" data-input="fc-preview"></textarea></div>
+            <div class="f"><label class="fl" for="fc-befragung">Befragung Tatverdächtiger</label><textarea class="fi" id="fc-befragung" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
+            <div class="f"><label class="fl" for="fc-zeugen">Zeugen / Aussagen</label><textarea class="fi" id="fc-zeugen" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
+            <div class="f"><label class="fl" for="fc-beweise">Beweissammlung</label><textarea class="fi" id="fc-beweise" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
+            <div class="f"><label class="fl" for="fc-tatvorwurf">Tatvorwurf</label><textarea class="fi" id="fc-tatvorwurf" rows="3" placeholder="- …" data-input="fc-preview"></textarea></div>
+            <div class="f"><label class="fl" for="fc-schluss">Schlussbetrachtung</label><textarea class="fi" id="fc-schluss" rows="3" data-input="fc-preview"></textarea></div>
+          </div>
+          <div class="f narrow"><label class="fl" for="fc-status">Status</label><select class="fi" id="fc-status" data-options="case-status" data-change="fc-preview"></select></div>
+          <div class="brow"><button class="btn ok" data-action="fc-add"><i class="ti ti-device-floppy"></i> Akte speichern</button></div>
+        </div>
+      </div>
+      <div class="pan preview-pan">
+        <div class="pan-h"><div class="pan-t"><i class="ti ti-file-text"></i> Vorschau</div><button class="btn sm" data-action="copy" data-arg="fc-pre"><i class="ti ti-copy"></i> Kopieren</button></div>
+        <div class="pan-b"><div class="ob tall" id="fc-pre"></div></div>
+      </div>
+    </div>
   </div>
   <div id="fibco-tab-members" class="dept-tabpanel" hidden><div data-members="fibco"></div></div>
 </section>
 
 <!-- ===================== CID ===================== -->
 <section class="view" id="v-cid" data-roles="cid">
-  <div class="mh"><h1>CID Beweise</h1><span class="badge">ABTEILUNG</span></div>
+  <div class="mh"><div><h1>CID Beweise</h1><p class="mh-sub">Criminal Investigative Division · Beweismittel erfassen</p></div><span class="badge">ABTEILUNG</span></div>
   <div class="orga-tabs">
-    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="cid:main">Beweise</button>
-    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="cid:members">Mitglieder</button>
+    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="cid:main"><i class="ti ti-microscope"></i> Beweise</button>
+    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="cid:members"><i class="ti ti-users-group"></i> Mitglieder</button>
   </div>
   <div id="cid-tab-main" class="dept-tabpanel stack">
-    <div class="pan">
-      <div class="pan-h"><div class="pan-t">Neuen Eintrag erfassen</div></div>
+    <details class="pan collapsible-pan" open>
+      <summary class="pan-h"><div class="pan-t"><i class="ti ti-plus"></i> Neuen Eintrag erfassen</div><i class="ti ti-chevron-down muted"></i></summary>
       <div class="pan-b">
         <div class="ir3">
           <div class="f"><label class="fl" for="cid-orga">Orga *</label><select class="fi" id="cid-orga" data-options="orgas" data-placeholder="-- wählen --"></select></div>
@@ -482,10 +575,10 @@
         <div class="f"><label class="fl" for="cid-tat">Tatvorwürfe *</label><textarea class="fi" id="cid-tat" rows="3" placeholder="Paragraphen, Beschreibung …"></textarea></div>
         <div class="brow"><button class="btn ok" data-action="cid-add"><i class="ti ti-device-floppy"></i> Eintrag speichern</button></div>
       </div>
-    </div>
+    </details>
     <div class="pan">
       <div class="pan-h">
-        <div class="pan-t">Einträge</div>
+        <div class="pan-t"><i class="ti ti-list-details"></i> Einträge</div>
         <div class="pan-tools">
           <select class="fi sm auto" id="cid-filter-orga" data-options="orgas" data-placeholder="Alle Orgas" data-change="cid-filter" aria-label="Orga-Filter"></select>
           <div class="sw"><i class="ti ti-search"></i><input class="fi si sm" id="cid-search" placeholder="Suche …" data-input="cid-filter" aria-label="Suche"></div>
@@ -504,13 +597,13 @@
 
 <!-- ===================== TD ===================== -->
 <section class="view" id="v-td" data-roles="td">
-  <div class="mh"><h1>TD Ausbildung</h1><span class="badge">ABTEILUNG</span></div>
+  <div class="mh"><div><h1>TD Ausbildung</h1><p class="mh-sub">Training Division · Ausbildungen eintragen und korrigieren</p></div><span class="badge">ABTEILUNG</span></div>
   <div class="orga-tabs">
-    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="td:main">Ausbildung</button>
-    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="td:members">Mitglieder</button>
+    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="td:main"><i class="ti ti-school"></i> Ausbildung</button>
+    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="td:members"><i class="ti ti-users-group"></i> Mitglieder</button>
   </div>
   <div id="td-tab-main" class="dept-tabpanel stack">
-    <div class="pan"><div class="pan-h"><div class="pan-t">Ausbildung eintragen</div></div>
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-certificate"></i> Ausbildung eintragen</div></div>
       <div class="pan-b">
         <div class="lookup">
           <label class="fl" for="td-pass-in">Pass-ID der Person</label>
@@ -531,7 +624,7 @@
             <button class="btn ok" data-action="td-save"><i class="ti ti-plus"></i> Eintragen</button>
           </div>
           <p class="hint">Erscheint sofort im Mitarbeiterverzeichnis und im Profil. Bei gleichem Namen wird nur der Status überschrieben.</p>
-          <div class="pl">Aktuelle Ausbildungen dieser Person</div>
+          <h3 class="form-section">Aktuelle Ausbildungen</h3>
           <div class="tbl-wrap"><table class="tbl">
             <thead><tr><th>Name</th><th class="right">Status</th><th></th></tr></thead>
             <tbody id="td-train-list"></tbody>
@@ -546,45 +639,47 @@
 
 <!-- ===================== CIRG ===================== -->
 <section class="view" id="v-cirg" data-roles="cirg">
-  <div class="mh"><h1>CIRG Events</h1><span class="badge">ABTEILUNG</span></div>
+  <div class="mh"><div><h1>CIRG Events</h1><p class="mh-sub">Critical Incident Response Group · Events und Einsatz-Logs</p></div><span class="badge">ABTEILUNG</span></div>
   <div class="orga-tabs">
-    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="cirg:main">Events</button>
-    <button type="button" class="orga-tab dept-tab" data-tab="logs" data-action="dept-tab" data-arg="cirg:logs">Event-Logs</button>
-    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="cirg:members">Mitglieder</button>
+    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="cirg:main"><i class="ti ti-calendar-event"></i> Events</button>
+    <button type="button" class="orga-tab dept-tab" data-tab="logs" data-action="dept-tab" data-arg="cirg:logs"><i class="ti ti-notes"></i> Event-Logs</button>
+    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="cirg:members"><i class="ti ti-users-group"></i> Mitglieder</button>
   </div>
-  <div id="cirg-tab-main" class="dept-tabpanel stack">
-    <div class="pan"><div class="pan-h"><div class="pan-t">Neues Event anlegen</div></div>
-      <div class="pan-b">
-        <div class="ir">
+  <div id="cirg-tab-main" class="dept-tabpanel">
+    <div class="split">
+      <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-plus"></i> Neues Event</div></div>
+        <div class="pan-b">
           <div class="f"><label class="fl" for="ce-name">Event-Name *</label><input class="fi" id="ce-name" placeholder="z. B. Bankraub-Übung"></div>
           <div class="f"><label class="fl" for="ce-date">Datum</label><input class="fi" type="date" id="ce-date"></div>
+          <div class="f"><label class="fl" for="ce-desc">Beschreibung</label><textarea class="fi" id="ce-desc" rows="4" placeholder="Worum geht es, Ablauf, Regeln …"></textarea></div>
+          <div class="brow"><button class="btn ok" data-action="cirg-add-event"><i class="ti ti-device-floppy"></i> Event speichern</button></div>
         </div>
-        <div class="f"><label class="fl" for="ce-desc">Beschreibung</label><textarea class="fi" id="ce-desc" rows="3" placeholder="Worum geht es, Ablauf, Regeln …"></textarea></div>
-        <div class="brow"><button class="btn ok" data-action="cirg-add-event"><i class="ti ti-device-floppy"></i> Event speichern</button></div>
       </div>
-    </div>
-    <div class="pan">
-      <div class="pan-h"><div class="pan-t">Alle Events</div><span class="count" id="ce-count"></span></div>
-      <div class="pan-b"><div id="ce-list"></div><div class="empty" id="ce-empty" hidden>Noch keine Events angelegt.</div></div>
+      <div class="pan">
+        <div class="pan-h"><div class="pan-t"><i class="ti ti-calendar-event"></i> Alle Events</div><span class="count" id="ce-count"></span></div>
+        <div class="pan-b"><div id="ce-list"></div><div class="empty" id="ce-empty" hidden>Noch keine Events angelegt.</div></div>
+      </div>
     </div>
   </div>
-  <div id="cirg-tab-logs" class="dept-tabpanel stack" hidden>
-    <div class="pan"><div class="pan-h"><div class="pan-t">Neuen Log-Eintrag erfassen</div></div>
-      <div class="pan-b">
-        <div class="f narrow"><label class="fl" for="cl-event">Zugehöriges Event</label><select class="fi" id="cl-event"><option value="">-- kein Event / allgemein --</option></select></div>
-        <div class="f"><label class="fl" for="cl-text">Log-Text *</label><textarea class="fi" id="cl-text" rows="3" placeholder="Was ist passiert? Verlauf, Ergebnis, Auffälligkeiten …"></textarea></div>
-        <div class="brow"><button class="btn ok" data-action="cirg-add-log"><i class="ti ti-device-floppy"></i> Log speichern</button></div>
-      </div>
-    </div>
-    <div class="pan">
-      <div class="pan-h">
-        <div class="pan-t">Event-Logs</div>
-        <div class="pan-tools">
-          <select class="fi sm auto" id="cl-filter" data-change="cl-filter" aria-label="Event-Filter"><option value="">Alle Events</option></select>
-          <span class="count" id="cl-count"></span>
+  <div id="cirg-tab-logs" class="dept-tabpanel" hidden>
+    <div class="split">
+      <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-plus"></i> Neuer Log-Eintrag</div></div>
+        <div class="pan-b">
+          <div class="f"><label class="fl" for="cl-event">Zugehöriges Event</label><select class="fi" id="cl-event"><option value="">-- kein Event / allgemein --</option></select></div>
+          <div class="f"><label class="fl" for="cl-text">Log-Text *</label><textarea class="fi" id="cl-text" rows="5" placeholder="Was ist passiert? Verlauf, Ergebnis, Auffälligkeiten …"></textarea></div>
+          <div class="brow"><button class="btn ok" data-action="cirg-add-log"><i class="ti ti-device-floppy"></i> Log speichern</button></div>
         </div>
       </div>
-      <div class="pan-b"><div id="cl-list"></div><div class="empty" id="cl-empty" hidden>Noch keine Log-Einträge vorhanden.</div></div>
+      <div class="pan">
+        <div class="pan-h">
+          <div class="pan-t"><i class="ti ti-notes"></i> Event-Logs</div>
+          <div class="pan-tools">
+            <select class="fi sm auto" id="cl-filter" data-change="cl-filter" aria-label="Event-Filter"><option value="">Alle Events</option></select>
+            <span class="count" id="cl-count"></span>
+          </div>
+        </div>
+        <div class="pan-b"><div id="cl-list" class="timeline"></div><div class="empty" id="cl-empty" hidden>Noch keine Log-Einträge vorhanden.</div></div>
+      </div>
     </div>
   </div>
   <div id="cirg-tab-members" class="dept-tabpanel" hidden><div data-members="cirg"></div></div>
@@ -592,13 +687,14 @@
 
 <!-- ===================== LAW ===================== -->
 <section class="view" id="v-law" data-roles="law">
-  <div class="mh"><h1>LAW Aktensystem</h1><span class="badge">ABTEILUNG</span></div>
+  <div class="mh"><div><h1>LAW Aktensystem</h1><p class="mh-sub">LAW Department · Mandanten-Akten</p></div><span class="badge">ABTEILUNG</span></div>
   <div class="orga-tabs">
-    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="law:main">Aktensystem</button>
-    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="law:members">Mitglieder</button>
+    <button type="button" class="orga-tab dept-tab act" data-tab="main" data-action="dept-tab" data-arg="law:main"><i class="ti ti-scale"></i> Aktensystem</button>
+    <button type="button" class="orga-tab dept-tab" data-tab="members" data-action="dept-tab" data-arg="law:members"><i class="ti ti-users-group"></i> Mitglieder</button>
   </div>
   <div id="law-tab-main" class="dept-tabpanel stack">
-    <div class="pan"><div class="pan-h"><div class="pan-t">Neue Mandanten-Akte anlegen</div></div>
+    <details class="pan collapsible-pan" open>
+      <summary class="pan-h"><div class="pan-t"><i class="ti ti-plus"></i> Neue Mandanten-Akte</div><i class="ti ti-chevron-down muted"></i></summary>
       <div class="pan-b">
         <div class="ir3">
           <div class="f"><label class="fl" for="lw-mandant">Mandant *</label><input class="fi" id="lw-mandant" placeholder="Vor- u. Nachname"></div>
@@ -607,14 +703,16 @@
           <div class="f"><label class="fl" for="lw-pass">Reisepass Mandant</label><input class="fi" id="lw-pass" placeholder="Pass-ID"></div>
           <div class="f"><label class="fl" for="lw-status">Status</label><select class="fi" id="lw-status" data-options="law-status"></select></div>
         </div>
-        <div class="f"><label class="fl" for="lw-sachverhalt">Sachverhalt</label><textarea class="fi" id="lw-sachverhalt" rows="3" placeholder="Worum geht es in diesem Fall …"></textarea></div>
-        <div class="f"><label class="fl" for="lw-notizen">Notizen / Verhandlungstermine</label><textarea class="fi" id="lw-notizen" rows="2" placeholder="Interne Notizen, Termine …"></textarea></div>
+        <div class="ir">
+          <div class="f"><label class="fl" for="lw-sachverhalt">Sachverhalt</label><textarea class="fi" id="lw-sachverhalt" rows="3" placeholder="Worum geht es in diesem Fall …"></textarea></div>
+          <div class="f"><label class="fl" for="lw-notizen">Notizen / Verhandlungstermine</label><textarea class="fi" id="lw-notizen" rows="3" placeholder="Interne Notizen, Termine …"></textarea></div>
+        </div>
         <div class="brow"><button class="btn ok" data-action="law-add"><i class="ti ti-device-floppy"></i> Akte speichern</button></div>
       </div>
-    </div>
+    </details>
     <div class="pan">
       <div class="pan-h">
-        <div class="pan-t">Alle Akten</div>
+        <div class="pan-t"><i class="ti ti-folders"></i> Alle Akten</div>
         <div class="pan-tools">
           <select class="fi sm auto" id="lw-filter" data-options="law-status" data-placeholder="Alle Status" data-change="lw-filter" aria-label="Status-Filter"></select>
           <div class="sw"><i class="ti ti-search"></i><input class="fi si sm" id="lw-search" placeholder="Suche …" data-input="lw-filter" aria-label="Suche"></div>
@@ -633,12 +731,7 @@
 
 <!-- ===================== VORLAGEN-EDITOR ===================== -->
 <section class="view" id="v-tpl" data-roles="hr">
-  <div class="mh"><h1>Vorlagen-Editor</h1><span class="badge">HR · FÜR ALLE</span></div>
-  <div class="info-box">
-    Hier passt du den Nachrichtentext der HR-Module an. Gespeicherte Vorlagen gelten <b>für die ganze HR</b>.
-    Platzhalter werden automatisch ersetzt – klick auf einen, um ihn einzufügen:
-    <div class="chips" id="tpl-vars"></div>
-  </div>
+  <div class="mh"><div><h1>Vorlagen-Editor</h1><p class="mh-sub">Nachrichtentexte der HR-Module – gelten für die ganze HR</p></div><span class="badge">HR</span></div>
   <div class="orga-tabs" id="tpl-tabs">
     <button type="button" class="orga-tab act" data-action="tpl-tab" data-arg="rang"><i class="ti ti-award"></i> Ranganpassung</button>
     <button type="button" class="orga-tab" data-action="tpl-tab" data-arg="ein"><i class="ti ti-user-plus"></i> Einstellung</button>
@@ -647,30 +740,43 @@
     <button type="button" class="orga-tab" data-action="tpl-tab" data-arg="san"><i class="ti ti-gavel"></i> Sanktion</button>
     <button type="button" class="orga-tab" data-action="tpl-tab" data-arg="pa"><i class="ti ti-id-badge"></i> Personalakte</button>
   </div>
-  <div class="pan">
-    <div class="pan-h">
-      <div class="pan-t" id="tpl-title">Vorlage bearbeiten</div>
-      <div class="pan-tools">
-        <button class="btn sm danger" data-action="tpl-reset"><i class="ti ti-refresh"></i> Standard</button>
-        <button class="btn sm ok" data-action="tpl-save"><i class="ti ti-device-floppy"></i> Speichern</button>
+  <div class="hr-grid">
+    <div class="pan">
+      <div class="pan-h">
+        <div class="pan-t"><i class="ti ti-pencil"></i> <span id="tpl-title">Vorlage bearbeiten</span></div>
+        <div class="pan-tools">
+          <button class="btn sm danger" data-action="tpl-reset"><i class="ti ti-refresh"></i> Standard</button>
+          <button class="btn sm ok" data-action="tpl-save"><i class="ti ti-device-floppy"></i> Speichern</button>
+        </div>
+      </div>
+      <div class="pan-b">
+        <textarea class="fi mono" id="tpl-editor" rows="14" data-input="tpl-preview" aria-label="Vorlagentext"></textarea>
+        <h3 class="form-section">Platzhalter <span class="muted small">– klicken zum Einfügen</span></h3>
+        <div class="chips" id="tpl-vars"></div>
       </div>
     </div>
-    <div class="pan-b">
-      <label class="fl" for="tpl-editor">Vorlagentext</label>
-      <textarea class="fi mono" id="tpl-editor" rows="14" data-input="tpl-preview"></textarea>
-      <div class="pl">Live-Vorschau mit Beispieldaten</div>
-      <div class="ob" id="tpl-preview"></div>
+    <div class="pan preview-pan">
+      <div class="pan-h"><div class="pan-t"><i class="ti ti-brand-discord"></i> Vorschau mit Beispieldaten</div></div>
+      <div class="pan-b">
+        <div class="discord"><div class="dc-avatar">FIB</div><div class="dc-body"><div class="dc-head"><span class="dc-name">FIB Personalabteilung</span><span class="dc-time">Heute</span></div><div class="dc-msg" id="tpl-md"></div></div></div>
+        <div id="tpl-preview" hidden></div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ===================== EINSTELLUNGEN ===================== -->
 <section class="view" id="v-cfg">
-  <div class="mh"><h1>Einstellungen</h1><span class="badge">SYSTEM</span></div>
-  <div class="pan"><div class="pan-h"><div class="pan-t">Darstellung</div></div>
-    <div class="pan-b stack">
-      <div>
-        <label class="fl" for="colpick">Akzentfarbe – wird in deinem Account gespeichert</label>
+  <div class="mh"><div><h1>Einstellungen</h1><p class="mh-sub">Darstellung, Absender-Profil und Daten</p></div><span class="badge">SYSTEM</span></div>
+  <div class="settings-grid">
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-palette"></i> Darstellung</div></div>
+      <div class="pan-b">
+        <span class="fl">Farbschema</span>
+        <div class="seg" role="group" aria-label="Farbschema">
+          <button type="button" class="seg-btn" data-action="theme-set" data-arg="dark"><i class="ti ti-moon"></i> Dunkel</button>
+          <button type="button" class="seg-btn" data-action="theme-set" data-arg="light"><i class="ti ti-sun"></i> Hell</button>
+        </div>
+        <label class="fl spaced" for="colpick">Akzentfarbe <span class="muted">– wird in deinem Account gespeichert</span></label>
         <div class="toolbar">
           <input type="color" value="#4a90e2" id="colpick" class="colpick" data-input="color-preview" data-change="color-save">
           <span id="colhex" class="mono muted">#4a90e2</span>
@@ -678,98 +784,111 @@
         <div class="chips" id="col-presets"></div>
       </div>
     </div>
-  </div>
-  <div class="pan" data-roles="hr"><div class="pan-h"><div class="pan-t">Absender-Profil (HR-Nachrichten)</div></div>
-    <div class="pan-b">
-      <p class="hint top">Wird unter jede generierte HR-Nachricht gesetzt. Nur in diesem Browser gespeichert.</p>
-      <div class="ir3">
+    <div class="pan" data-roles="hr"><div class="pan-h"><div class="pan-t"><i class="ti ti-signature"></i> Absender-Profil (HR)</div></div>
+      <div class="pan-b">
+        <p class="hint top">Wird unter jede generierte HR-Nachricht gesetzt. Nur in diesem Browser gespeichert.</p>
         <div class="f"><label class="fl" for="cfg-name">Dein Name / Ping</label><input class="fi" id="cfg-name" placeholder="@DeinName" data-input="abs"></div>
-        <div class="f"><label class="fl" for="cfg-rang">Dein Rang</label><input class="fi" id="cfg-rang" placeholder="z. B. 23. SAIC" data-input="abs"></div>
-        <div class="f"><label class="fl" for="cfg-abt">Deine Abteilung</label><input class="fi" id="cfg-abt" placeholder="z. B. HR" data-input="abs"></div>
-      </div>
-      <button class="btn sm" data-action="abs-save"><i class="ti ti-device-floppy"></i> Speichern</button>
-    </div>
-  </div>
-  <div class="pan"><div class="pan-h"><div class="pan-t">Daten</div></div>
-    <div class="pan-b stack">
-      <div class="info-box">
-        Cloud-Status: <span id="cloud-status-cfg">--</span><br>
-        Agenten im Verzeichnis: <span id="cfg-count" class="accent">--</span> · Rangstufen: <span class="accent">30</span>
-      </div>
-      <div class="toolbar">
-        <button class="btn sm" data-action="reload-data"><i class="ti ti-refresh"></i> Daten neu laden</button>
-        <button class="btn sm" data-action="open-sheet"><i class="ti ti-external-link"></i> Google Sheet öffnen</button>
+        <div class="ir">
+          <div class="f"><label class="fl" for="cfg-rang">Dein Rang</label><input class="fi" id="cfg-rang" placeholder="z. B. 23. SAIC" data-input="abs"></div>
+          <div class="f"><label class="fl" for="cfg-abt">Deine Abteilung</label><input class="fi" id="cfg-abt" placeholder="z. B. HR" data-input="abs"></div>
+        </div>
+        <button class="btn sm" data-action="abs-save"><i class="ti ti-device-floppy"></i> Speichern</button>
       </div>
     </div>
-  </div>
-  <div class="pan" data-roles="admin"><div class="pan-h"><div class="pan-t">Datenübernahme (Admin)</div></div>
-    <div class="pan-b stack">
-      <div class="info-box" id="migration-status">--</div>
-      <div><button class="btn sm" id="migration-btn" data-action="finalize-migration" hidden><i class="ti ti-database-export"></i> Übernahme abschließen &amp; Altbestand löschen</button></div>
+    <div class="pan"><div class="pan-h"><div class="pan-t"><i class="ti ti-database"></i> Daten</div></div>
+      <div class="pan-b stack">
+        <dl class="kv">
+          <dt>Cloud-Status</dt><dd id="cloud-status-cfg">--</dd>
+          <dt>Agenten im Verzeichnis</dt><dd id="cfg-count" class="accent">--</dd>
+          <dt>Rangstufen</dt><dd>30</dd>
+        </dl>
+        <div class="toolbar">
+          <button class="btn sm" data-action="reload-data"><i class="ti ti-refresh"></i> Daten neu laden</button>
+          <button class="btn sm" data-action="open-sheet"><i class="ti ti-external-link"></i> Google Sheet öffnen</button>
+        </div>
+      </div>
     </div>
-  </div>
-  <div class="pan" data-roles="admin"><div class="pan-h"><div class="pan-t">TD-Korrekturen (Admin)</div></div>
-    <div class="pan-b stack">
-      <p class="hint top">Manuell über „TD Ausbildung“ eingetragene Ausbildungen überschreiben die Häkchen aus dem Sheet – auch wenn die Person später im Sheet anders markiert wird. Falsche oder Test-Einträge hier bereinigen.</p>
-      <div id="td-corrections-list"></div>
-      <div><button class="btn sm danger" data-action="td-clear-all"><i class="ti ti-trash"></i> Alle TD-Korrekturen löschen</button></div>
+    <div class="pan" data-roles="admin"><div class="pan-h"><div class="pan-t"><i class="ti ti-database-export"></i> Datenübernahme (Admin)</div></div>
+      <div class="pan-b stack">
+        <div class="info-box" id="migration-status">--</div>
+        <div><button class="btn sm" id="migration-btn" data-action="finalize-migration" hidden><i class="ti ti-database-export"></i> Übernahme abschließen &amp; Altbestand löschen</button></div>
+      </div>
+    </div>
+    <div class="pan span-all" data-roles="admin"><div class="pan-h"><div class="pan-t"><i class="ti ti-school"></i> TD-Korrekturen (Admin)</div></div>
+      <div class="pan-b stack">
+        <p class="hint top">Manuell über „TD Ausbildung“ eingetragene Ausbildungen überschreiben die Häkchen aus dem Sheet – auch wenn die Person später im Sheet anders markiert wird. Falsche oder Test-Einträge hier bereinigen.</p>
+        <div id="td-corrections-list"></div>
+        <div><button class="btn sm danger" data-action="td-clear-all"><i class="ti ti-trash"></i> Alle TD-Korrekturen löschen</button></div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- ===================== MEIN PROFIL ===================== -->
 <section class="view" id="v-profil">
-  <div class="mh"><h1>Mein Profil</h1><span class="badge">ACCOUNT</span></div>
+  <div class="mh"><div><h1>Mein Profil</h1><p class="mh-sub">Deine Angaben und Ausbildungen</p></div>
+    <div class="pan-tools">
+      <button class="btn sm" data-action="own-password"><i class="ti ti-key"></i> Passwort ändern</button>
+      <button class="btn sm ok" data-action="self-edit"><i class="ti ti-edit"></i> Profil bearbeiten</button>
+    </div>
+  </div>
   <div class="profile-header" id="mp-header"></div>
   <div class="profile-cols">
     <div class="pan">
-      <div class="pan-h"><div class="pan-t">Über mich</div>
-        <div class="pan-tools">
-          <button class="btn sm" data-action="own-password"><i class="ti ti-key"></i> Passwort</button>
-          <button class="btn sm ok" data-action="self-edit"><i class="ti ti-edit"></i> Bearbeiten</button>
-        </div>
-      </div>
+      <div class="pan-h"><div class="pan-t"><i class="ti ti-user"></i> Über mich</div></div>
       <div class="pan-b"><p id="mp-bio" class="bio"></p><div id="mp-info"></div></div>
     </div>
     <div class="pan">
-      <div class="pan-h"><div class="pan-t" id="mp-train-title">Ausbildungen / Schulungen</div></div>
+      <div class="pan-h"><div class="pan-t"><i class="ti ti-certificate"></i> <span id="mp-train-title">Ausbildungen / Schulungen</span></div></div>
       <div class="pan-b">
         <table class="tbl"><thead><tr><th>Name</th><th class="right">Status</th></tr></thead><tbody id="mp-trainings"></tbody></table>
         <div class="empty" id="mp-trainings-empty" hidden>Keine Schulungen hinterlegt – wird von der Personalabteilung gepflegt.</div>
       </div>
     </div>
   </div>
-  <p class="hint">Foto, Anzeigename, Telefon und „Über mich“ pflegst du selbst. Position, Eintrittsdatum, Beförderung und Schulungen kommen aus dem Verzeichnis bzw. von der Personalabteilung.</p>
 </section>
 
 <!-- ===================== BENUTZERVERWALTUNG ===================== -->
 <section class="view" id="v-benutzer" data-roles="admin">
-  <div class="mh"><h1>Benutzerverwaltung</h1><span class="badge">ADMIN</span></div>
-  <div class="info-box">
-    Rollen steuern, welche Module ein Account sieht <b>und</b> welche Daten er laden darf (wird serverseitig geprüft):
-    <b>HR</b> Personal-Module · <b>FIBCO</b> Fallakten · <b>CID</b> Beweise · <b>TD</b> Ausbildung · <b>CIRG</b> Events/Logs · <b>LAW</b> Aktensystem ·
-    <b>Leaderschaft</b> alle Abteilungen (ohne Benutzerverwaltung) · <b>Admin</b> alles.
+  <div class="mh"><div><h1>Benutzerverwaltung</h1><p class="mh-sub">Accounts, Rollen und Passwörter</p></div>
+    <button class="btn ok" data-action="create-user"><i class="ti ti-user-plus"></i> Neuer Account</button>
   </div>
   <div class="note warn" id="adm-legacy-hint" hidden>
     <i class="ti ti-alert-triangle"></i>
     <div><b><span id="adm-legacy-count">0</span> alte Account(s)</b> aus der vorherigen Version. Diese können sich erst wieder anmelden, wenn du ihnen über „Account aktivieren“ ein neues (temporäres) Passwort gibst.</div>
   </div>
-  <div><button class="btn ok" data-action="create-user"><i class="ti ti-user-plus"></i> Neuen Account anlegen</button></div>
   <div id="adm-userlist" class="profile-grid"></div>
+  <details class="info-box">
+    <summary class="strong">Welche Rolle darf was?</summary>
+    <p>Rollen steuern, welche Module ein Account sieht <b>und</b> welche Daten er laden darf (wird serverseitig geprüft):
+    <b>HR</b> Personal-Module &amp; Vorlagen · <b>FIBCO</b> Fallakten · <b>CID</b> Beweise · <b>TD</b> Ausbildung · <b>CIRG</b> Events/Logs · <b>LAW</b> Aktensystem ·
+    <b>Leaderschaft</b> alle Abteilungen (ohne Benutzerverwaltung) · <b>Admin</b> alles.</p>
+  </details>
 </section>
 
 </main>
-</div>
-
-<footer class="bottombar">
-  <span id="bclk" class="clock">00:00:00</span>
-  <span class="accent strong">GrandRP DE01 · FIB Personalabteilung</span>
-  <span class="muted">Abgesichert · Cloud-Betrieb</span>
-</footer>
-</div>
+</div><!-- /content -->
+</div><!-- /shell -->
 </div><!-- /app-root -->
 
 <!-- ===================== FENSTER ===================== -->
+
+<!-- Schnellsuche (Strg+K) -->
+<div class="modal-bg palette-bg" id="palette" role="dialog" aria-modal="true" aria-label="Schnellsuche">
+  <div class="palette">
+    <div class="palette-search"><i class="ti ti-search"></i><input id="palette-input" placeholder="Modul oder Person suchen …" autocomplete="off" aria-label="Suchbegriff" aria-controls="palette-list"><kbd>Esc</kbd></div>
+    <ul class="palette-list" id="palette-list" role="listbox"></ul>
+    <div class="palette-foot"><span><kbd>↑</kbd><kbd>↓</kbd> auswählen</span><span><kbd>Enter</kbd> öffnen</span></div>
+  </div>
+</div>
+
+<!-- Personenkarte -->
+<div class="modal-bg" id="person-modal" role="dialog" aria-modal="true" aria-label="Personenkarte">
+  <div class="modal">
+    <div class="modal-h"><h2>Personenkarte</h2><button class="btn sm icon ghost" data-action="close-modal" data-arg="person-modal" aria-label="Schließen"><i class="ti ti-x"></i></button></div>
+    <div id="person-body"></div>
+  </div>
+</div>
 
 <!-- Klassifizierung bearbeiten -->
 <div class="modal-bg" id="kl-modal" role="dialog" aria-modal="true" aria-labelledby="kl-modal-title">
@@ -841,7 +960,7 @@
     <h2 id="se-title">Mein Profil bearbeiten</h2>
     <div class="absbox">
       <div class="abtitle"><i class="ti ti-id-badge"></i> Aus Mitarbeiterverzeichnis übernehmen</div>
-      <div class="toolbar">
+      <div class="toolbar nowrap">
         <input class="fi grow" id="se-passid" placeholder="Deine Pass-ID, z. B. 170940" data-enter="self-lookup" aria-label="Pass-ID">
         <button class="btn sm" data-action="self-lookup"><i class="ti ti-search"></i> Laden</button>
       </div>

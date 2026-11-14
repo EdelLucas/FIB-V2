@@ -34,7 +34,9 @@ function applyTplVars(tpl,vars){ return tpl.replace(/\{(\w+)\}/g,(m,k)=>vars[k]!
 function baseVars(){ return{datum:gd(),eintritt:gd(),absender:absLine(),dn:'--',name:'--',rang:'--',grund:'--',abteilung:'--',alter_rang:'--',neuer_rang:'--',pass:'--',sanktion:'--',strike:'0/3'}; }
 function updatePreview(pfx){
   const g=GENERATORS[pfx];if(!g)return;
-  setOb(pfx+'-pre',applyTplVars(getTpl(g.tpl),{...baseVars(),...g.vars()}).trimEnd());
+  const txt=applyTplVars(getTpl(g.tpl),{...baseVars(),...g.vars()}).trimEnd();
+  setOb(pfx+'-pre',txt);
+  const md=$(pfx+'-md');if(md)md.innerHTML=mdToHtml(txt);
 }
 function updateAllPreviews(){ Object.keys(GENERATORS).forEach(updatePreview); }
 
@@ -61,7 +63,9 @@ function showTplTab(key){
 }
 function updateTplPreview(){
   const sample={...baseVars(),...TPL_SAMPLE,datum:gd(),eintritt:gd(),absender:absLine()};
-  setOb('tpl-preview',applyTplVars(gv('tpl-editor'),sample));
+  const txt=applyTplVars(gv('tpl-editor'),sample);
+  setOb('tpl-preview',txt);
+  const md=$('tpl-md');if(md)md.innerHTML=mdToHtml(txt);
 }
 async function saveTpl(){
   const key=curTplKey,val=gv('tpl-editor');

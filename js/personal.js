@@ -19,7 +19,7 @@ function buildMA(){
     const rowId='ma-exp-'+_hash(String(m.id));
     return`<tr draggable="true" data-mid="${esc(m.id)}" class="drag-row">
       <td class="mono muted"><span class="grip" title="Ziehen zum Sortieren">⠿</span>${esc(m.id)}</td>
-      <td class="strong">${esc(m.name)}</td>
+      <td class="strong"><button type="button" class="name-link" data-action="person" data-arg="${esc(m.id)}">${esc(m.name)}</button></td>
       <td><span class="rb ${rankCls(m.rank)}">${esc(m.rank||'--')}</span></td>
       <td class="accent">${esc(m.dn||'--')}</td>
       <td class="muted small">${esc(m.div||'--')}</td>
@@ -136,6 +136,7 @@ function lookupPass(pfx){
   const found=$(pfx+'-found');
   const {m,hits}=findPerson(val);
   show(pfx+'-fields',!!m);
+  show(pfx+'-hint',!m);
   if(!val){found.innerHTML='';return;}
   if(!m){
     found.innerHTML=hits>1
@@ -162,7 +163,7 @@ function renderDeptMembers(prefix){
   setOb('dm-'+prefix+'-count',list.length+(all?' Mitarbeiter':' Mitglieder'));
   fillTable('dm-'+prefix+'-body',list.map(m=>`<tr>
     <td class="mono muted">${esc(m.id)}</td>
-    <td class="strong">${esc(m.name)}</td>
+    <td class="strong"><button type="button" class="name-link" data-action="person" data-arg="${esc(m.id)}">${esc(m.name)}</button></td>
     <td><span class="rb ${rankCls(m.rank)}">${esc(m.rank||'--')}</span></td>
     <td class="accent">${esc(m.dn||'--')}</td>
     <td class="muted small">${esc(m.abt||'--')}</td>
@@ -172,15 +173,41 @@ function renderDeptMembers(prefix){
 // ===================== DASHBOARD =====================
 function renderDashboard(){
   const total=MA.length||1;
+  // Abteilungen als Balken
   const rows=DASH_DEPTS.map(([code,label])=>({code,label,n:deptMembers(code).length})).sort((a,b)=>b.n-a.n);
-  fillTable('dash-depts',rows.map(r=>{
-    const pct=r.n/total*100;
-    return`<tr><td>${esc(r.label)} <span class="muted">(${esc(r.code)})</span></td><td class="mono">${r.n}</td>
-      <td><div class="bar"><span style="width:${pct.toFixed(1)}%"></span></div><span class="bar-lbl">${r.n&&pct<1?'< 1':Math.round(pct)} %</span></td></tr>`;
-  }).join(''));
+  const max=Math.max(1,...rows.map(r=>r.n));
+  const box=$('dash-depts');
+  if(box)box.innerHTML=rows.map(r=>`<div class="dept-bar">
+      <div class="dept-bar-label"><span class="strong">${esc(r.code)}</span><span class="muted small">${esc(r.label)}</span></div>
+      <div class="dept-bar-track"><span style="width:${(r.n/max*100).toFixed(1)}%"></span></div>
+      <div class="dept-bar-val mono">${r.n}<span class="muted small"> · ${r.n&&r.n/total<.01?'<1':Math.round(r.n/total*100)}%</span></div>
+    </div>`).join('');
+  // Kennzahlen
   animateCount($('dash-count'),MA.length);
-  setOb('dash-lead',MA.filter(m=>parseInt(m.rank)>=28).length);
-  setOb('dash-depcount',DASH_DEPTS.length);
+  animateCount($('dash-lead'),MA.filter(m=>parseInt(m.rank)>=28).length);
+  animateCount($('dash-strikes'),MA.filter(m=>m.strike&&m.strike!=='0/3').length);
+  let passed=0,all=0;
+  MA.forEach(m=>{const t=mergeTrainings(m.trainings,m.id);all+=t.length;passed+=t.filter(x=>x.passed).length;});
+  setOb('dash-train',all?Math.round(passed/all*100)+' %':'–');
+  // Begrüßung
+  const h=new Date().getHours();
+  setOb('dash-greet',h<11?'Guten Morgen':h<18?'Guten Tag':'Guten Abend');
+  setOb('dash-date',new Date().toLocaleDateString('de-DE',{weekday:'long',day:'numeric',month:'long',year:'numeric'}));
+  renderActivity();
+}
+// Letzte Änderungen aus den Cloud-Bereichen, die der Nutzer lesen darf
+const AREA_LABELS={kl:['Klassifizierung','ti-shield-lock','kl'],maOrder:['Verzeichnis-Reihenfolge','ti-arrows-sort','ma'],extraTrainings:['TD-Ausbildungen','ti-school','td'],tpls:['HR-Vorlagen','ti-template','tpl'],fc:['FIBCO Fallakten','ti-folder-open','fibco'],cid:['CID Beweise','ti-microscope','cid'],cirgEvents:['CIRG Events','ti-calendar-event','cirg'],cirgLogs:['CIRG Logs','ti-notes','cirg'],lawCases:['LAW Akten','ti-scale','law']};
+function renderActivity(){
+  const box=$('dash-activity');if(!box)return;
+  const items=(typeof storeActivity==='function'?storeActivity():[]).slice(0,6);
+  if(!items.length){box.innerHTML='<li class="empty">Noch keine Änderungen.</li>';return;}
+  box.innerHTML=items.map(a=>{
+    const [label,icon,view]=AREA_LABELS[a.key]||[a.key,'ti-point','dash'];
+    return`<li><button type="button" class="activity-item" data-action="nav" data-arg="${view}">
+      <span class="activity-icon"><i class="ti ${icon}"></i></span>
+      <span class="activity-text"><span class="strong">${esc(label)}</span><span class="muted small">${a.by?'von '+esc(a.by)+' · ':''}${esc(timeAgo(a.at))}</span></span>
+    </button></li>`;
+  }).join('');
 }
 function animateCount(el,target){
   if(!el)return;
@@ -195,6 +222,7 @@ function animateCount(el,target){
 Object.assign(ACTIONS,{
   'ma-page':maGo,
   'toggle-row':(id)=>{const r=$(id);if(r)r.hidden=!r.hidden;},
+  'person':(id)=>openPerson(id),
   'dept-toggle-all':(p)=>{DEPT_SHOW_ALL[p]=!DEPT_SHOW_ALL[p];renderDeptMembers(p);},
   'open-sheet':()=>window.open(SHEET_URL,'_blank','noopener')
 });
@@ -202,3 +230,43 @@ Object.assign(INPUTS,{'ma-filter':()=>filterMA(),'lookup':lookupPass});
 Object.assign(CHANGES,{'ma-filter':()=>filterMA()});
 onStore('maOrder',()=>{applyMaOrder();filterMA(true);});
 onStore('extraTrainings',()=>refreshDirectory());
+
+// ===================== PERSONENKARTE =====================
+function openPerson(id){
+  const m=MA.find(x=>String(x.id)===String(id));if(!m)return;
+  const trains=mergeTrainings(m.trainings,m.id);
+  const pass=trains.filter(t=>t.passed).length;
+  const hrBtns=hasRole('hr')?`<div class="brow">
+      <button class="btn sm" data-action="person-start" data-arg="ra" data-id="${esc(m.id)}"><i class="ti ti-award"></i> Ranganpassung</button>
+      <button class="btn sm" data-action="person-start" data-arg="sa" data-id="${esc(m.id)}"><i class="ti ti-gavel"></i> Sanktion</button>
+      <button class="btn sm" data-action="person-start" data-arg="pa" data-id="${esc(m.id)}"><i class="ti ti-id-badge"></i> Personalakte</button>
+      <button class="btn sm danger" data-action="person-start" data-arg="ku" data-id="${esc(m.id)}"><i class="ti ti-user-minus"></i> Kündigung</button>
+    </div>`:'';
+  $('person-body').innerHTML=`
+    <div class="person-head">
+      ${avatarHtml(m.name,'','xl')}
+      <div>
+        <div class="profile-header-name">${esc(m.name)}</div>
+        <div class="person-tags"><span class="rb ${rankCls(m.rank)}">${esc(m.rank||'--')}</span>${m.div?`<span class="role-tag">${esc(m.div)}</span>`:''}</div>
+      </div>
+    </div>
+    <dl class="kv">
+      <dt>Pass-ID</dt><dd class="mono">${esc(m.id)}</dd>
+      <dt>Dienstnummer</dt><dd class="mono">${esc(m.dn||'--')}</dd>
+      <dt>Abteilung</dt><dd>${esc(m.abt||'--')}</dd>
+      <dt>Strike</dt><dd class="${m.strike&&m.strike!=='0/3'?'err-text':'ok-text'}">${esc(m.strike||'0/3')}</dd>
+      <dt>Eintritt</dt><dd>${esc(m.date||'--')}</dd>
+      <dt>Letzte Beförderung</dt><dd>${esc(m.lastPromo||'--')}</dd>
+    </dl>
+    <h3 class="form-section">Ausbildungen <span class="muted small">${pass}/${trains.length} bestanden</span></h3>
+    <div class="chips">${trains.map(t=>trainBadge(t,esc(t.name))).join('')||'<span class="muted">Keine Ausbildungen hinterlegt.</span>'}</div>
+    ${hrBtns}`;
+  openModal('person-modal');
+}
+ACTIONS['person-start']=(pfx,el)=>{
+  const view={ra:'rang',sa:'san',pa:'pa',ku:'kue'}[pfx];
+  closeModalById('person-modal');
+  sv(view);
+  sv2(pfx+'-pass-in',el.dataset.id);
+  lookupPass(pfx);
+};

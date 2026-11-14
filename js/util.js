@@ -265,7 +265,7 @@ function buildTemplates(){
     const p=box.dataset.members;
     box.innerHTML=`<div class="pan">
       <div class="pan-h">
-        <div class="pan-t">Mitglieder der Abteilung</div>
+        <div class="pan-t"><i class="ti ti-users-group"></i> Mitglieder der Abteilung</div>
         <div class="pan-tools">
           <button class="btn sm" id="dm-${p}-toggle" data-action="dept-toggle-all" data-arg="${p}">Alle Mitarbeiter anzeigen</button>
           <span class="count" id="dm-${p}-count"></span>
@@ -286,4 +286,50 @@ function buildTemplates(){
   // Rollen-Auswahl im Account-Formular
   const roleBox=$('ue-roles');
   if(roleBox)roleBox.innerHTML=ROLES.map(([v,l])=>`<label class="role-chip"><input type="checkbox" value="${v}" class="ue-role"> ${esc(l)}</label>`).join('');
+
+  // Discord-Vorschau der HR-Module: <div data-preview="ra"></div>
+  document.querySelectorAll('[data-preview]').forEach(box=>{
+    const p=box.dataset.preview;
+    box.className='pan preview-pan';
+    box.innerHTML=`<div class="pan-h">
+        <div class="pan-t"><i class="ti ti-brand-discord"></i> Discord-Vorschau</div>
+        <button class="btn sm ok" data-action="copy" data-arg="${p}-pre"><i class="ti ti-copy"></i> Nachricht kopieren</button>
+      </div>
+      <div class="pan-b">
+        <div class="discord">
+          <div class="dc-avatar">FIB</div>
+          <div class="dc-body">
+            <div class="dc-head"><span class="dc-name">FIB Personalabteilung</span><span class="dc-time">Heute</span></div>
+            <div class="dc-msg" id="${p}-md"></div>
+          </div>
+        </div>
+        <details class="raw"><summary>Rohtext anzeigen</summary><div class="ob" id="${p}-pre"></div></details>
+      </div>`;
+  });
+}
+
+// ===================== DISCORD-MARKDOWN (Vorschau) =====================
+// Erst komplett escapen, dann nur die bekannten Discord-Formatierungen umsetzen.
+function mdToHtml(text){
+  return String(text||'').split('\n').map(line=>{
+    let small=false;
+    if(line.startsWith('-# ')){small=true;line=line.slice(3);}
+    let h=esc(line)
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/__(.+?)__/g,'<u>$1</u>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/\|\|(.+?)\|\|/g,'<span class="dc-spoiler">$1</span>')
+      .replace(/(^|\s)(@[\wÄÖÜäöüß.-]+)/g,'$1<span class="dc-mention">$2</span>');
+    if(small)return`<div class="dc-small">${h||'&nbsp;'}</div>`;
+    return`<div>${h||'&nbsp;'}</div>`;
+  }).join('');
+}
+
+// Relative Zeitangabe ("vor 5 Min.")
+function timeAgo(ts){
+  const s=Math.round((Date.now()-ts)/1000);
+  if(s<60)return'gerade eben';
+  const m=Math.round(s/60);if(m<60)return`vor ${m} Min.`;
+  const h=Math.round(m/60);if(h<24)return`vor ${h} Std.`;
+  const d=Math.round(h/24);return d===1?'gestern':`vor ${d} Tagen`;
 }

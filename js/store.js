@@ -54,7 +54,14 @@ function _effective(key){
 }
 function _publish(key){
   DB[key]=_effective(key);
+  if(typeof renderActivity==='function') renderActivity();
   (STORE_HOOKS[key]||[]).forEach(fn=>{ try{fn(DB[key]);}catch(e){console.error('Render-Fehler',key,e);} });
+}
+// Letzte Änderungen je Bereich (für das Dashboard)
+function storeActivity(){
+  return Object.keys(_docs).filter(k=>_docs[k]&&_docs[k].updatedAt)
+    .map(k=>({key:k,at:_docs[k].updatedAt,by:_docs[k].updatedBy||''}))
+    .sort((a,b)=>b.at-a.at);
 }
 
 function stopStore(){
