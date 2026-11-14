@@ -1,36 +1,44 @@
-// FIB Personalabteilung · Initialisierung
-// ===================== INIT =====================
-let MA=DEF.map(m=>({...m}));
-let filtered=[...MA];
-let maPage=1;
-const PER=15;
+// FIB Personalabteilung · Start der Anwendung
 
-try{const c=localStorage.getItem('fib_color');if(c){setCol(c);const cp=document.getElementById('colpick');if(cp)cp.value=c;}}catch(e){}
-tick();setInterval(tick,1000);
-fillSelects();
-buildMA();
+buildTemplates();
+renderColorPresets();
+restoreNavGroups();
+renderThemeButtons();
+renderTplVars();
+try{ const c=localStorage.getItem('fib_color'); if(c)setCol(c); }catch(e){}
+tick(); setInterval(tick,1000);
 loadAbsIntoFields();
-klRender();
-[upAz,upRa,upEs,upKu,upSa,upPa].forEach(f=>f());
-showTplTab('rang',document.querySelector('.tpl-tab'));
-
-// Login-Enter-Taste
-['login-email','login-pass'].forEach(id=>{
-  const el=document.getElementById(id);
-  if(el)el.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-});
+updateAllPreviews();
+fcPreview();
+refreshDirectory();
 
 let _dataStarted=false;
 function startAppData(){
   if(_dataStarted)return;
   _dataStarted=true;
-  // Startet Firebase Live-Listener — lädt KL/FC/CID-Daten initial und bei jeder Änderung automatisch
-  cloudLoad();
-  // Startet Google Sheet Live-Sync für Mitarbeiterliste (alle 30 Sek.)
-  startSheetSync();
+  startStore();      // Firestore-Live-Daten (nur Bereiche, die der Nutzer sehen darf)
+  startSheetSync();  // Mitarbeiterverzeichnis aus dem Google Sheet (alle 30 Sek.)
+}
+function stopAppData(){
+  _dataStarted=false;
+  stopStore();
+  stopSheetSync();
 }
 
-// Versuche gespeicherte Login-Session wiederherzustellen (Login selbst braucht kein Firebase).
-// Firebase/Firestore wird weiterhin nur für den Cloud-Datenabgleich (KL/FC/CID) genutzt
-// und erst gestartet, sobald jemand erfolgreich eingeloggt ist (siehe startAppData()).
-tryRestoreSession();
+// Anmeldestatus überwachen – Firebase merkt sich die Sitzung selbst.
+(async()=>{
+  try{
+    await initFirebase();
+  }catch(e){
+    $('boot-screen').hidden=true;
+    $('login-screen').hidden=false;
+    loginError('Server nicht erreichbar. Internetverbindung prüfen und Seite neu laden.');
+    return;
+  }
+  FB.au.onAuthStateChanged(FB.auth,user=>{
+    if(_bootstrapping)return;
+    if(user){ handleSignedIn(user); }
+    else if(currentUser){ doLogout(); }
+    else { showLogin(); }
+  });
+})();
