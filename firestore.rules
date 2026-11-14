@@ -1,0 +1,150 @@
+rules_version = '2';
+
+// =====================================================================
+// FIB Personalabteilung · Firestore-Sicherheitsregeln
+// In der Firebase Console unter Firestore Database → Regeln einfügen
+// und veröffentlichen (siehe SETUP.md).
+//
+// Prinzip:
+//  - Angemeldet wird über Firebase Authentication. Die Login-Adresse hat die Form
+//    <kennung>+<schlüssel>@…  Der Schlüssel muss mit fib_users/<kennung>.authKey
+//    übereinstimmen – vergibt ein Admin ein neues Passwort, wird der alte Login
+//    damit sofort ungültig.
+//  - Rollen stehen in fib_users/<kennung>.roles und werden HIER geprüft, nicht
+//    nur in der Oberfläche.
+// =====================================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Hilfsfunktionen ----------
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
+    function localPart() { return request.auth.token.email.split('@')[0]; }
+    function uname() { return localPart().split('[+]')[0]; }
+    function ukey()  { return localPart().split('[+]').size() > 1 ? localPart().split('[+]')[1] : ''; }
+    function userPath(u) { return /databases/$(database)/documents/fib_users/$(u); }
+    function me() { return get(userPath(uname())).data; }
+
+    // Angemeldet, Account existiert, Schlüssel passt, nicht gesperrt
+    function active() {
+      return signedIn()
+        && exists(userPath(uname()))
+        && me().get('authKey', '') == ukey()
+        && ukey() != ''
+        && me().get('disabled', false) != true;
+    }
+    function roles() { return me().get('roles', []); }
+    function hasRole(r) {
+      return active() && (
+        roles().hasAny(['admin'])
+        || (r != 'admin' && roles().hasAny(['leader']))
+        || roles().hasAny([r])
+      );
+    }
+    function isAdmin() { return hasRole('admin'); }
+
+    // ---------- Ersteinrichtung (erster Admin) ----------
+    function bootstrapPath() { return /databases/$(database)/documents/fib_meta/bootstrap; }
+    function proofPath() { return /databases/$(database)/documents/fib_meta/bootstrap_proof; }
+    function notBootstrapped() { return !exists(bootstrapPath()); }
+    // Schreibt der angemeldete Nutzer gerade (im selben Batch) den Bootstrap-Marker?
+    function bootstrappingAs(u) {
+      return signedIn() && notBootstrapped() && uname() == u
+        && existsAfter(bootstrapPath())
+        && getAfter(bootstrapPath()).data.by == u;
+    }
+    // Bisheriges Admin-Passwort (SHA-256 aus der alten Version) als Nachweis:
+    // entweder der Hash des alten Admin-Dokuments oder der alte Standard-Hash.
+    function legacyAdminHash() {
+      return exists(userPath('admin')) && get(userPath('admin')).data.get('passHash', '') != ''
+        ? get(userPath('admin')).data.passHash
+        : '15221d5e748afa63d8ad7b6110dba4b9fbf27f995b25964abb0f5ae1d889d478';
+    }
+    function proofValid() {
+      return exists(proofPath())
+        && hashing.sha256(get(proofPath()).data.p).toHexString().lower() == legacyAdminHash();
+    }
+
+    match /fib_meta/bootstrap {
+      allow get: if true;
+      allow create: if signedIn() && notBootstrapped()
+        && request.resource.data.by == uname()
+        && proofValid();
+      allow update, delete: if false;
+    }
+    match /fib_meta/bootstrap_proof {
+      // Nur schreibbar, solange noch nicht eingerichtet; niemals lesbar
+      allow create, update: if notBootstrapped()
+        && request.resource.data.keys().hasOnly(['p'])
+        && request.resource.data.p is string
+        && request.resource.data.p.size() < 200;
+      allow read, delete: if false;
+    }
+
+    // ---------- Login-Zuordnung (öffentlich, aber nur einzeln abrufbar) ----------
+    match /fib_login/{u} {
+      allow get: if true;
+      allow list: if false;
+      allow create, update: if isAdmin()
+        || (bootstrappingAs(u) && request.resource.data.key == ukey());
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Accounts ----------
+    match /fib_users/{u} {
+      allow get: if active() && (u == uname() || isAdmin());
+      allow list: if isAdmin();
+      allow create, update: if isAdmin()
+        // Ersteinrichtung: eigenes Admin-Dokument mit passendem Schlüssel
+        || (bootstrappingAs(u)
+            && request.resource.data.authKey == ukey()
+            && request.resource.data.roles == ['admin'])
+        // Nach dem Pflicht-Passwortwechsel darf man NUR mustChange=false setzen
+        || (active() && u == uname()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChange'])
+            && request.resource.data.mustChange == false);
+      allow delete: if isAdmin() && u != uname();
+    }
+
+    // ---------- Profile ----------
+    match /fib_profiles/{u} {
+      allow read: if active();
+      allow create, update: if (active() && u == uname()
+                                && !request.resource.data.keys().hasAny(['roles','authKey','disabled']))
+                            || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Daten je Bereich ----------
+    // Lese-/Schreibrolle je Bereich ('' = alle angemeldeten Nutzer)
+    function readRole(k) {
+      return {'kl':'', 'maOrder':'', 'extraTrainings':'', 'tpls':'hr',
+              'fc':'fibco', 'cid':'cid', 'cirgEvents':'cirg', 'cirgLogs':'cirg', 'lawCases':'law'}.get(k, 'admin');
+    }
+    function writeRole(k) {
+      return {'kl':'', 'maOrder':'', 'extraTrainings':'td', 'tpls':'hr',
+              'fc':'fibco', 'cid':'cid', 'cirgEvents':'cirg', 'cirgLogs':'cirg', 'lawCases':'law'}.get(k, 'admin');
+    }
+    function allowedBy(role) { return role == '' ? active() : hasRole(role); }
+
+    match /fib_data/{key} {
+      allow read: if allowedBy(readRole(key));
+      allow create, update: if allowedBy(writeRole(key))
+        && request.resource.data.keys().hasOnly(['v','migrated','updatedAt','updatedBy']);
+      allow delete: if isAdmin();
+    }
+
+    // ---------- Altbestand (früheres Sammeldokument) ----------
+    // Nur noch lesbar, damit die Übernahme in fib_data funktioniert; der Admin löscht
+    // es nach Abschluss der Übernahme (Einstellungen → Datenübernahme).
+    match /fib/data {
+      allow read: if active();
+      allow create, update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // Alles andere: gesperrt
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

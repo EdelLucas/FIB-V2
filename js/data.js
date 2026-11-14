@@ -81,3 +81,32 @@ const DEF=[
 {id:"253176",name:"Gimo Jimmbo",rank:"17. Commander",dn:"707",div:"Command",abt:"FIBCO",ausb:"",strike:"0/3",date:"26.05.2026",status:"Aktiv",notes:""},
 ];
 
+
+// Organisationen (Klassifizierung / CID) – zentral statt mehrfach im HTML/JS
+const ORGAS=['FIB','LSPD','SAHP','LI','EMS','NG','GOV'];
+const ORGA_COLORS={FIB:'#5b8def',LSPD:'#2f6fd6',SAHP:'#2f8f5b',LI:'#9333c4',EMS:'#dc3545',NG:'#0d9488',GOV:'#c2680a'};
+const ORGA_EMOJI={FIB:'🟡',LSPD:'🔵',SAHP:'🟢',LI:'🟣',EMS:'🔴',NG:'🩵',GOV:'🟠'};
+
+// Abteilungen mit Mitgliederliste (Kürzel = Suchbegriff in der Spalte "Abteilungen")
+const DEPTS={fibco:'FIBCO',cid:'CID',td:'TD',cirg:'CIRG',law:'LAW'};
+
+// Abteilungsübersicht auf dem Dashboard
+const DASH_DEPTS=[
+  ['CIRG','Critical Incident Response Group'],
+  ['CID','Criminal Investigative Division'],
+  ['FIBCO','Corruption Office'],
+  ['HR','Human Resources'],
+  ['PR','Public Relations'],
+  ['TD','Training Division'],
+  ['IA','Internal Affairs'],
+  ['LAW','LAW Department']
+];
+
+const CASE_STATUS=['Offen','In Bearbeitung','Abgeschlossen','Archiviert'];
+const LAW_STATUS=['Offen','In Bearbeitung','Vor Gericht','Abgeschlossen','Archiviert'];
+const STATUS_COLORS={'Offen':'var(--wa)','In Bearbeitung':'var(--bl)','Vor Gericht':'var(--re)','Abgeschlossen':'var(--gr)','Archiviert':'var(--mu)'};
+
+const ROLES=[
+  ['hr','HR'],['fibco','FIBCO'],['cid','CID'],['td','TD'],['cirg','CIRG'],['law','LAW'],
+  ['leader','Leaderschaft'],['admin','Admin']
+];

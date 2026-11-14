@@ -1,659 +1,365 @@
 // FIB Personalabteilung · Abteilungsmodule: FIBCO, CID, TD, CIRG, LAW
+// Alle Einträge haben eine feste ID; Löschen/Bearbeiten läuft über diese ID
+// (nicht mehr über die Position in der Liste) und als Cloud-Transaktion.
+
 // ===================== FIBCO FALLAKTEN =====================
-let FC_DATA = [];
+const FC_FIELDS=['name','coid','codename','tel','behoerde','familie','reisepass','dienstausweis','personalakte','pdaMain','pdaFz','vorfall','befragung','zeugen','beweise','tatvorwurf','schluss','status'];
+const FC_INPUT={name:'fc-name',coid:'fc-coid',codename:'fc-codename',tel:'fc-tel',behoerde:'fc-behoerde',familie:'fc-familie',reisepass:'fc-reisepass',dienstausweis:'fc-dienstausweis',personalakte:'fc-personalakte',pdaMain:'fc-pda-main',pdaFz:'fc-pda-fz',vorfall:'fc-vorfall',befragung:'fc-befragung',zeugen:'fc-zeugen',beweise:'fc-beweise',tatvorwurf:'fc-tatvorwurf',schluss:'fc-schluss',status:'fc-status'};
 
-function fcSave(){ cloudPush(); }
-
-function fcPreview(){
-  const name      = gv('fc-name')||'Name';
-  const coid      = gv('fc-coid')||'CO-ID-1';
-  const tatdat    = gv('fc-tatdat') ? gv('fc-tatdat').split('-').reverse().join('.') : 'TT.MM.YYYY';
-  const codename  = gv('fc-codename')||'[Codename]';
-  const tel       = gv('fc-tel')||'';
-  const behoerde  = gv('fc-behoerde')||'';
-  const familie   = gv('fc-familie')||'';
-  const reisepass = gv('fc-reisepass')||'';
-  const dienst    = gv('fc-dienstausweis')||'';
-  const pa        = gv('fc-personalakte')||'';
-  const pdaMain   = gv('fc-pda-main')||'';
-  const pdaFz     = gv('fc-pda-fz')||'';
-  const vorfall   = gv('fc-vorfall')||'[…]';
-  const befragung = gv('fc-befragung')||'- ABC';
-  const zeugen    = gv('fc-zeugen')||'- ABC';
-  const beweise   = gv('fc-beweise')||'- ABC';
-  const tatvorwurf= gv('fc-tatvorwurf')||'- ABC';
-  const schluss   = gv('fc-schluss')||'TEXT';
-
-  const txt =
-`${name} | ${coid} | ${tatdat}
-Codename: ${codename}
-Telefonnummer: ${tel}
-Behörde: ${behoerde}
-Familie: ${familie}
-Reisepass: ${reisepass}
-Dienstausweis: ${dienst}
-Personalakte: ${pa}
-PDA Hauptseite: ${pdaMain}
-PDA Fahrzeugliste: ${pdaFz}
+// Ein einziger Text-Baustein für Vorschau, Kopieren und Detailansicht
+function fcText(e,ph){
+  ph=ph||{};
+  const v=k=>e[k]||ph[k]||'';
+  return`${v('name')} | ${v('coid')} | ${e.tatdat||ph.tatdat||'--'}
+Codename: ${v('codename')}
+Telefonnummer: ${v('tel')}
+Behörde: ${v('behoerde')}
+Familie: ${v('familie')}
+Reisepass: ${v('reisepass')}
+Dienstausweis: ${v('dienstausweis')}
+Personalakte: ${v('personalakte')}
+PDA Hauptseite: ${v('pdaMain')}
+PDA Fahrzeugliste: ${v('pdaFz')}
 
 [Vorfall]
-${vorfall}
+${v('vorfall')}
 
 [Befragung Tatverdächtiger]
-${befragung}
+${v('befragung')}
 
 [Zeugen-/aussagen]
-${zeugen}
+${v('zeugen')}
 
 [Beweissammlung]
-${beweise}
+${v('beweise')}
 
 [Tatvorwurf]
-${tatvorwurf}
+${v('tatvorwurf')}
 
 [Schlussbetrachtung]
-${schluss}`;
-
-  setOb('fc-pre', txt);
+${v('schluss')}`;
 }
-
-function fcAdd(){
-  const name=gv('fc-name').trim(), coid=gv('fc-coid').trim();
-  if(!name||!coid){showToast('Name und CO-ID sind Pflichtfelder!');return;}
-  if(FC_DATA.find(e=>e.coid.toLowerCase()===coid.toLowerCase())){
-    showToast('⚠️ CO-ID '+coid+' bereits vorhanden!');
-    const el=document.getElementById('fc-coid');
-    if(el){el.style.borderColor='var(--re)';setTimeout(()=>el.style.borderColor='',2000);}
-    return;
-  }
-  const tatdat=gv('fc-tatdat')?gv('fc-tatdat').split('-').reverse().join('.'):'';
-  FC_DATA.push({
-    name, coid, tatdat,
-    codename:     gv('fc-codename').trim(),
-    tel:          gv('fc-tel').trim(),
-    behoerde:     gv('fc-behoerde').trim(),
-    familie:      gv('fc-familie').trim(),
-    reisepass:    gv('fc-reisepass').trim(),
-    dienstausweis:gv('fc-dienstausweis').trim(),
-    personalakte: gv('fc-personalakte').trim(),
-    pdaMain:      gv('fc-pda-main').trim(),
-    pdaFz:        gv('fc-pda-fz').trim(),
-    vorfall:      gv('fc-vorfall').trim(),
-    befragung:    gv('fc-befragung').trim(),
-    zeugen:       gv('fc-zeugen').trim(),
-    beweise:      gv('fc-beweise').trim(),
-    tatvorwurf:   gv('fc-tatvorwurf').trim(),
-    schluss:      gv('fc-schluss').trim(),
-    status:       gv('fc-status'),
-    date:         gd()
+function fcFormValues(){
+  const e={};
+  FC_FIELDS.forEach(k=>{e[k]=gv(FC_INPUT[k]).trim();});
+  e.tatdat=isoToDmy(gv('fc-tatdat'));
+  return e;
+}
+function fcPreview(){
+  setOb('fc-pre',fcText(fcFormValues(),{name:'Name',coid:'CO-ID-1',tatdat:'TT.MM.JJJJ',codename:'[Codename]',vorfall:'[…]',befragung:'- ABC',zeugen:'- ABC',beweise:'- ABC',tatvorwurf:'- ABC',schluss:'TEXT'}));
+}
+async function fcAdd(){
+  if(!requireFields([['fc-name','Name eingeben'],['fc-coid','CO-ID eingeben']]))return;
+  const e={...fcFormValues(),id:uid('fc'),date:gd(),by:currentName||currentUser};
+  let dup=false;
+  await cloudMutate('fc',list=>{
+    if(list.some(x=>(x.coid||'').toLowerCase()===e.coid.toLowerCase())){dup=true;return undefined;}
+    list.push(e);return list;
   });
-  fcSave();
-  ['fc-name','fc-coid','fc-codename','fc-tel','fc-behoerde','fc-familie','fc-reisepass',
-   'fc-dienstausweis','fc-personalakte','fc-pda-main','fc-pda-fz',
-   'fc-vorfall','fc-befragung','fc-zeugen','fc-beweise','fc-tatvorwurf','fc-schluss'].forEach(id=>sv2(id,''));
-  const td=document.getElementById('fc-tatdat');if(td)td.value='';
+  if(dup){fieldError('fc-coid',`CO-ID ${e.coid} ist bereits vergeben`);return;}
+  clearForm(Object.values(FC_INPUT).concat('fc-tatdat'));
   sv2('fc-status','Offen');
-  setOb('fc-pre','');
-  fcRender();
+  fcPreview();
   showToast('Fallakte gespeichert');
 }
-
-function fcDel(i){
-  if(!confirm('Fallakte wirklich löschen?'))return;
-  FC_DATA.splice(i,1);fcSave();fcRender();showToast('Gelöscht');
-}
-
-function fcExpand(i){
-  const row=document.getElementById('fc-exp-'+i);
-  if(!row)return;
-  row.style.display=row.style.display==='none'?'table-row':'none';
-}
-
-function fcCopyEntry(i){
-  const e=FC_DATA[i];if(!e)return;
-  const txt=
-`${e.name} | ${e.coid} | ${e.tatdat||'--'}
-Codename: ${e.codename||''}
-Telefonnummer: ${e.tel||''}
-Behörde: ${e.behoerde||''}
-Familie: ${e.familie||''}
-Reisepass: ${e.reisepass||''}
-Dienstausweis: ${e.dienstausweis||''}
-Personalakte: ${e.personalakte||''}
-PDA Hauptseite: ${e.pdaMain||''}
-PDA Fahrzeugliste: ${e.pdaFz||''}
-
-[Vorfall]
-${e.vorfall||''}
-
-[Befragung Tatverdächtiger]
-${e.befragung||''}
-
-[Zeugen-/aussagen]
-${e.zeugen||''}
-
-[Beweissammlung]
-${e.beweise||''}
-
-[Tatvorwurf]
-${e.tatvorwurf||''}
-
-[Schlussbetrachtung]
-${e.schluss||''}`;
-  navigator.clipboard.writeText(txt).then(()=>showToast('Fallakte kopiert!')).catch(()=>{});
-}
-
 function fcRender(){
-  const q=(gv('fc-search')||'').toLowerCase();
-  const f=gv('fc-filter');
-  let list=FC_DATA.filter(e=>{
-    const okQ=!q||(e.name||'').toLowerCase().includes(q)||(e.coid||'').toLowerCase().includes(q)||(e.familie||'').toLowerCase().includes(q)||(e.reisepass||'').includes(q);
-    const okF=!f||e.status===f;
-    return okQ&&okF;
-  });
-  const body=document.getElementById('fc-body');
-  const empty=document.getElementById('fc-empty');
-  const count=document.getElementById('fc-count');
-  if(count)count.textContent=list.length+' Akten';
-  const statusCol={Offen:'var(--wa)','In Bearbeitung':'var(--bl)',Abgeschlossen:'var(--gr)',Archiviert:'var(--mu)'};
-  if(!list.length){if(body)body.innerHTML='';if(empty)empty.style.display='block';return;}
-  if(empty)empty.style.display='none';
-  if(body)body.innerHTML=list.map(e=>{
-    const i=FC_DATA.indexOf(e);
-    const col=statusCol[e.status]||'var(--mu)';
+  const q=gv('fc-search').toLowerCase().trim(),f=gv('fc-filter');
+  const list=(DB.fc||[]).filter(e=>
+    (!q||[e.name,e.coid,e.familie,e.reisepass].join(' ').toLowerCase().includes(q))&&(!f||e.status===f));
+  setOb('fc-count',list.length+' Akten');
+  fillTable('fc-body',list.map(e=>{
+    const k=itemKey(e),rid='fc-exp-'+_hash(k);
     return`<tr>
-      <td style="color:var(--g);font-size:11px;white-space:nowrap;font-family:'SF Mono','Consolas',monospace;font-weight:600;">${e.coid}</td>
-      <td style="font-weight:bold">${e.name}</td>
-      <td style="font-size:11px;color:var(--mu);white-space:nowrap">${e.tatdat||'--'}</td>
-      <td style="font-size:11px;color:var(--mu)">${e.familie||'--'}</td>
-      <td><span style="display:inline-block;font-size:10px;padding:1px 7px;border-radius:2px;border:1.5px solid ${col};background:${col}12;color:${col};font-weight:700;letter-spacing:.03em;transform:rotate(-2deg);">${e.status}</span></td>
-      <td style="font-size:11px;color:var(--mu);white-space:nowrap">${e.date||'--'}</td>
-      <td style="text-align:center;white-space:nowrap">
-        <div style="display:flex;gap:3px;justify-content:center;">
-          <button class="btn sm" onclick="fcExpand(${i})" title="Details anzeigen" style="color:var(--g);border-color:var(--gd)"><i class="ti ti-eye"></i></button>
-          <button class="btn sm bl" onclick="fcCopyEntry(${i})" title="Vorlage kopieren"><i class="ti ti-copy"></i></button>
-          <button class="btn sm ng" onclick="fcDel(${i})" title="Löschen"><i class="ti ti-trash"></i></button>
-        </div>
+      <td class="mono accent strong nowrap">${esc(e.coid)}</td>
+      <td class="strong">${esc(e.name)}</td>
+      <td class="muted small nowrap">${esc(e.tatdat||'--')}</td>
+      <td class="muted small">${esc(e.familie||'--')}</td>
+      <td>${statusBadge(e.status)}</td>
+      <td class="muted small nowrap">${esc(e.date||'--')}</td>
+      <td class="actions">
+        <button class="btn sm icon" data-action="toggle-row" data-arg="${rid}" title="Details"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon" data-action="fc-status" data-arg="${esc(k)}" title="Status ändern"><i class="ti ti-progress"></i></button>
+        <button class="btn sm icon" data-action="fc-copy" data-arg="${esc(k)}" title="Vorlage kopieren"><i class="ti ti-copy"></i></button>
+        <button class="btn sm icon danger" data-action="fc-del" data-arg="${esc(k)}" title="Löschen"><i class="ti ti-trash"></i></button>
       </td>
     </tr>
-    <tr id="fc-exp-${i}" style="display:none">
-      <td colspan="7" style="background:var(--p2);padding:12px 14px;font-size:11px;color:var(--mu);border-bottom:1px solid var(--bd);line-height:1.9;">
-        <div style="white-space:pre-wrap;font-family:'Courier New',monospace;">${
-          (`${e.name} | ${e.coid} | ${e.tatdat||'--'}
-Codename: ${e.codename||''}
-Telefonnummer: ${e.tel||''}
-Behörde: ${e.behoerde||''}
-Familie: ${e.familie||''}
-Reisepass: ${e.reisepass||''}
-Dienstausweis: ${e.dienstausweis||''}
-Personalakte: ${e.personalakte||''}
-PDA Hauptseite: ${e.pdaMain||''}
-PDA Fahrzeugliste: ${e.pdaFz||''}
-
-[Vorfall]
-${e.vorfall||''}
-
-[Befragung Tatverdächtiger]
-${e.befragung||''}
-
-[Zeugen-/aussagen]
-${e.zeugen||''}
-
-[Beweissammlung]
-${e.beweise||''}
-
-[Tatvorwurf]
-${e.tatvorwurf||''}
-
-[Schlussbetrachtung]
-${e.schluss||''}`).replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        }</div>
-      </td>
-    </tr>`;
-  }).join('');
+    <tr id="${rid}" class="exp" hidden><td colspan="7"><pre class="exp-pre">${esc(fcText(e))}</pre></td></tr>`;
+  }).join(''),'fc-empty',!list.length);
+}
+async function fcChangeStatus(k){
+  const e=findByKey(DB.fc,k);if(!e)return;
+  const next=CASE_STATUS[(CASE_STATUS.indexOf(e.status)+1)%CASE_STATUS.length];
+  const ok=await uiConfirm(`Status von ${e.coid} von „${e.status}“ auf „${next}“ setzen?`,{title:'Status ändern',okText:next});
+  if(!ok)return;
+  await cloudMutate('fc',list=>{const x=findByKey(list,k);if(!x)return undefined;x.status=next;return list;});
+  showToast('Status: '+next);
 }
 
 // ===================== CID BEWEISE =====================
-let CID_DATA = [];
-
-function cidSave(){ cloudPush(); }
-
-function cidAdd(){
-  const orga=gv('cid-orga'), beamter=gv('cid-beamter').trim(), tat=gv('cid-tat').trim();
-  if(!orga||!beamter||!tat){showToast('Orga, Beamter und Tatvorwürfe sind Pflichtfelder!');return;}
-
-  // Zeitstempel automatisch
-  const now=new Date();
-  const ts=[
-    String(now.getDate()).padStart(2,'0'),
-    String(now.getMonth()+1).padStart(2,'0'),
-    now.getFullYear()
-  ].join('.')+' '+[
-    String(now.getHours()).padStart(2,'0'),
-    String(now.getMinutes()).padStart(2,'0')
-  ].join(':');
-
-  CID_DATA.push({
-    ts,
-    orga,
-    beamter,
-    pass:    gv('cid-pass').trim(),
-    kfz:     gv('cid-kfz').trim(),
-    gang:    gv('cid-gang'),
-    tatdat:  gv('cid-tatdat'),
-    tatzeit: gv('cid-tatzeit'),
-    tat,
-    clip:    gv('cid-clip').trim()
-  });
-
-  cidSave();
-  ['cid-pass','cid-kfz','cid-tat','cid-clip','cid-beamter'].forEach(id=>sv2(id,''));
-  sv2('cid-orga','');sv2('cid-gang','');
-  const td=document.getElementById('cid-tatdat'); if(td) td.value='';
-  const tt=document.getElementById('cid-tatzeit'); if(tt) tt.value='';
-  cidRender();
+async function cidAdd(){
+  if(!requireFields([['cid-orga','Orga wählen'],['cid-beamter','Beamten eintragen'],['cid-tat','Tatvorwürfe eintragen']]))return;
+  const e={
+    id:uid('cid'),ts:nowStamp(),
+    orga:gv('cid-orga'),beamter:gv('cid-beamter').trim(),pass:gv('cid-pass').trim(),kfz:gv('cid-kfz').trim(),
+    gang:gv('cid-gang'),tatdat:gv('cid-tatdat'),tatzeit:gv('cid-tatzeit'),tat:gv('cid-tat').trim(),clip:gv('cid-clip').trim(),
+    by:currentName||currentUser
+  };
+  await cloudMutate('cid',list=>{list.push(e);return list;});
+  clearForm(['cid-orga','cid-beamter','cid-pass','cid-kfz','cid-gang','cid-tatdat','cid-tatzeit','cid-tat','cid-clip']);
   showToast('Eintrag gespeichert');
 }
-
-function cidDel(i){
-  if(!confirm('Eintrag wirklich löschen?'))return;
-  CID_DATA.splice(i,1);cidSave();cidRender();showToast('Gelöscht');
+function clipHtml(clip){
+  const url=safeUrl(clip);
+  if(url)return`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="info-text"><i class="ti ti-external-link"></i> Link</a>`;
+  return clip?`<span class="muted small">${esc(clip)}</span>`:'<span class="muted">--</span>';
 }
-
 function cidRender(){
-  const q=(gv('cid-search')||'').toLowerCase();
-  const fo=gv('cid-filter-orga');
-  let list=CID_DATA.filter(e=>{
-    const okQ=!q||
-      (e.beamter||'').toLowerCase().includes(q)||
-      (e.orga||'').toLowerCase().includes(q)||
-      (e.pass||'').includes(q)||
-      (e.kfz||'').toLowerCase().includes(q)||
-      (e.tat||'').toLowerCase().includes(q);
-    const okO=!fo||e.orga===fo;
-    return okQ&&okO;
-  });
-
-  const body=document.getElementById('cid-body');
-  const empty=document.getElementById('cid-empty');
-  const count=document.getElementById('cid-count');
-  if(count) count.textContent=list.length+' Einträge';
-
-  const KL_ORGA_COL={FIB:'#1e3a5f',LSPD:'#2f6fd6',SAHP:'#2f8f5b',LI:'#9333c4',EMS:'#dc3545',NG:'#0d9488',GOV:'#c2680a'};
-
-  if(!list.length){
-    if(body) body.innerHTML='';
-    if(empty) empty.style.display='block';
-    return;
-  }
-  if(empty) empty.style.display='none';
-  if(body) body.innerHTML=list.map(e=>{
-    const i=CID_DATA.indexOf(e);
-    const col=KL_ORGA_COL[e.orga]||'var(--mu)';
-    const tatShort=e.tat&&e.tat.length>40?e.tat.slice(0,40)+'...':e.tat||'--';
-    const clipHtml=e.clip
-      ? (e.clip.startsWith('http')
-          ? `<a href="${e.clip}" target="_blank" style="color:var(--bl);font-size:11px;text-decoration:none;"><i class="ti ti-external-link"></i> Link</a>`
-          : `<span style="font-size:11px;color:var(--mu)">${e.clip}</span>`)
-      : '<span style="color:var(--mu);font-size:11px">--</span>';
-    const tatDatFmt=e.tatdat?e.tatdat.split('-').reverse().join('.'):'--';
+  const q=gv('cid-search').toLowerCase().trim(),fo=gv('cid-filter-orga');
+  const list=(DB.cid||[]).filter(e=>
+    (!q||[e.beamter,e.orga,e.pass,e.kfz,e.tat].join(' ').toLowerCase().includes(q))&&(!fo||e.orga===fo));
+  setOb('cid-count',list.length+' Einträge');
+  fillTable('cid-body',list.map(e=>{
+    const k=itemKey(e),rid='cid-exp-'+_hash(k);
+    const tat=e.tat||'';
+    const url=safeUrl(e.clip);
     return`<tr>
-      <td style="font-size:10px;color:var(--mu);white-space:nowrap">${e.ts||'--'}</td>
-      <td><span style="display:inline-block;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid ${col}55;background:${col}20;color:${col};font-weight:bold">${e.orga}</span></td>
-      <td style="font-size:11px;font-weight:bold;white-space:nowrap">${e.beamter}</td>
-      <td style="font-size:11px;color:var(--mu)">${e.pass||'--'}</td>
-      <td style="font-size:11px;color:var(--mu)">${e.kfz||'--'}</td>
-      <td style="font-size:11px;color:var(--mu);white-space:nowrap">${e.gang||'--'}</td>
-      <td style="font-size:11px;color:var(--mu);white-space:nowrap">${tatDatFmt}</td>
-      <td style="font-size:11px;color:var(--mu);white-space:nowrap">${e.tatzeit||'--'}</td>
-      <td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${e.tat||''}">${tatShort}</td>
-      <td>${clipHtml}</td>
-      <td style="text-align:center;white-space:nowrap">
-        <div style="display:flex;gap:3px;justify-content:center;">
-          <button class="btn sm" onclick="cidExpand(${i})" title="Details" style="color:var(--g);border-color:var(--gd)"><i class="ti ti-eye"></i></button>
-          <button class="btn sm ng" onclick="cidDel(${i})" title="Löschen"><i class="ti ti-trash"></i></button>
-        </div>
+      <td class="muted small nowrap">${esc(e.ts||'--')}</td>
+      <td>${orgaBadge(e.orga)}</td>
+      <td class="strong nowrap">${esc(e.beamter)}</td>
+      <td class="mono muted">${esc(e.pass||'--')}</td>
+      <td class="muted small">${esc(e.kfz||'--')}</td>
+      <td class="muted small nowrap">${esc(e.gang||'--')}</td>
+      <td class="muted small nowrap">${esc(e.tatdat?isoToDmy(e.tatdat):'--')}</td>
+      <td class="muted small nowrap">${esc(e.tatzeit||'--')}</td>
+      <td class="small clip" title="${esc(tat)}">${esc(tat.length>40?tat.slice(0,40)+'…':tat||'--')}</td>
+      <td>${clipHtml(e.clip)}</td>
+      <td class="actions">
+        <button class="btn sm icon" data-action="toggle-row" data-arg="${rid}" title="Details"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon danger" data-action="cid-del" data-arg="${esc(k)}" title="Löschen"><i class="ti ti-trash"></i></button>
       </td>
     </tr>
-    <tr id="cid-exp-${i}" style="display:none">
-      <td colspan="11" style="background:var(--p2);padding:10px 14px;font-size:11px;color:var(--mu);border-bottom:1px solid var(--bd)">
-        <b style="color:var(--tx)">Vollständige Tatvorwürfe:</b><br>${(e.tat||'').replace(/\n/g,'<br>')}
-        ${e.gang?`<br><br><b style="color:var(--tx)">Gang:</b> ${e.gang}`:''}
-        ${e.clip?`<br><br><b style="color:var(--tx)">Clip:</b> <a href="${e.clip}" target="_blank" style="color:var(--bl)">${e.clip}</a>`:''}
-      </td>
-    </tr>`;
-  }).join('');
-}
-
-function cidExpand(i){
-  const row=document.getElementById('cid-exp-'+i);
-  if(!row)return;
-  row.style.display=row.style.display==='none'?'table-row':'none';
+    <tr id="${rid}" class="exp" hidden><td colspan="11">
+      <div class="exp-title">Vollständige Tatvorwürfe</div><div>${escMultiline(tat)}</div>
+      ${e.gang?`<div class="exp-title">Gang</div><div>${esc(e.gang)}</div>`:''}
+      ${e.clip?`<div class="exp-title">Clip</div><div>${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer" class="info-text">${esc(url)}</a>`:esc(e.clip)}</div>`:''}
+      ${e.by?`<div class="exp-title">Erfasst von</div><div>${esc(e.by)}</div>`:''}
+    </td></tr>`;
+  }).join(''),'cid-empty',!list.length);
 }
 
 // ===================== TD AUSBILDUNG =====================
-function tdSave(){ cloudPush(); }
-
 function tdLookup(){
   const id=gv('td-pass-in').trim();
-  const foundEl=document.getElementById('td-found');
-  const fieldsEl=document.getElementById('td-fields');
-  if(!id){
-    foundEl.innerHTML='<span style="color:var(--mu);font-size:11px">Pass-ID eingeben</span>';
-    fieldsEl.style.display='none';
-    return;
-  }
-  const m=MA.find(x=>x.id===id);
-  if(!m){
-    foundEl.innerHTML='<span style="color:var(--re);font-size:11px"><i class="ti ti-x" style="font-size:11px"></i> Kein Treffer</span>';
-    fieldsEl.style.display='none';
-    return;
-  }
-  foundEl.innerHTML=`<span style="color:var(--gr);font-size:11px"><i class="ti ti-check" style="font-size:11px"></i> <b>${m.name}</b> · ${m.rank}</span>`;
-  fieldsEl.style.display='block';
-  sv2('td-passid',m.id);
-  sv2('td-name-ed',m.name);
-  sv2('td-rang-ed',m.rank);
+  const found=$('td-found');
+  const m=id&&MA.find(x=>x.id===id);
+  show('td-fields',!!m);
+  sv2('td-passid',m?m.id:'');
+  if(!id){found.innerHTML='';return;}
+  if(!m){found.innerHTML='<span class="err-text"><i class="ti ti-x"></i> Kein Treffer</span>';return;}
+  found.innerHTML=`<span class="ok-text"><i class="ti ti-check"></i> <b>${esc(m.name)}</b> · ${esc(m.rank)}</span>`;
+  sv2('td-name',m.name);sv2('td-rang',m.rank);
   tdRenderList();
 }
-
 function tdRenderList(){
   const id=gv('td-passid');
-  const tbody=document.getElementById('td-train-list');
-  const empty=document.getElementById('td-train-empty');
-  if(!tbody)return;
-  if(!id){tbody.innerHTML='';if(empty)empty.style.display='none';return;}
+  if(!id){fillTable('td-train-list','','td-train-empty',false);return;}
   const trains=getTrainingsForId(id);
-  if(!trains.length){tbody.innerHTML='';if(empty)empty.style.display='block';return;}
-  if(empty)empty.style.display='none';
-  tbody.innerHTML=trains.map(t=>`<tr>
-    <td>${t.name}</td>
-    <td style="text-align:right"><span class="train-badge ${t.passed?'train-pass':'train-fail'}">${t.passed?'BESTANDEN':'NICHT ABSOLVIERT'}</span></td>
-    <td style="text-align:center"><button class="btn sm ng" onclick="tdRemoveTraining('${t.name.replace(/'/g,"\\'")}')" title="Aus TD-Liste entfernen (Sheet-Wert bleibt bestehen)"><i class="ti ti-x"></i></button></td>
-  </tr>`).join('');
+  const manual=new Set((DB.extraTrainings[id]||[]).map(t=>t.name.toLowerCase()));
+  fillTable('td-train-list',trains.map(t=>`<tr>
+    <td>${esc(t.name)}${manual.has(t.name.toLowerCase())?' <span class="live-tag">TD</span>':''}</td>
+    <td class="right">${trainBadge(t)}</td>
+    <td class="actions">${manual.has(t.name.toLowerCase())?`<button class="btn sm icon danger" data-action="td-remove" data-arg="${esc(t.name)}" title="TD-Eintrag entfernen (Sheet-Wert gilt wieder)"><i class="ti ti-x"></i></button>`:''}</td>
+  </tr>`).join(''),'td-train-empty',!trains.length);
 }
-
-function tdSaveTraining(){
+async function tdSaveTraining(){
   const id=gv('td-passid');
-  if(!id){showToast('Bitte zuerst eine Person suchen');return;}
-  const name=gv('td-train-name').trim();
-  if(!name){showToast('Trainingsname eingeben');return;}
-  const passed=gv('td-train-status')==='1';
-  if(!EXTRA_TRAININGS[id]) EXTRA_TRAININGS[id]=[];
-  const existing=EXTRA_TRAININGS[id].find(t=>t.name.toLowerCase()===name.toLowerCase());
-  if(existing) existing.passed=passed; else EXTRA_TRAININGS[id].push({name,passed});
-  tdSave();
+  if(!id){showToast('Bitte zuerst eine Person suchen',{type:'info'});return;}
+  if(!requireFields([['td-train-name','Name der Ausbildung']]))return;
+  const name=gv('td-train-name').trim(),passed=gv('td-train-status')==='1';
+  await cloudMutate('extraTrainings',all=>{
+    const list=all[id]=all[id]||[];
+    const ex=list.find(t=>t.name.toLowerCase()===name.toLowerCase());
+    if(ex)ex.passed=passed;else list.push({name,passed});
+    return all;
+  });
   sv2('td-train-name','');
-  tdRenderList();
-  buildMA();
-  showToast('Ausbildung eingetragen — im Verzeichnis sichtbar');
+  showToast('Ausbildung eingetragen – im Verzeichnis sichtbar');
+}
+async function tdRemoveTraining(name,id){
+  id=id||gv('td-passid');
+  await cloudMutate('extraTrainings',all=>{
+    if(!all[id])return undefined;
+    all[id]=all[id].filter(t=>t.name.toLowerCase()!==name.toLowerCase());
+    if(!all[id].length)delete all[id];
+    return all;
+  });
+  showToast('Entfernt – Sheet-Wert gilt wieder');
 }
 
-function tdRemoveTraining(name){
-  const id=gv('td-passid');
-  if(!id||!EXTRA_TRAININGS[id])return;
-  EXTRA_TRAININGS[id]=EXTRA_TRAININGS[id].filter(t=>t.name.toLowerCase()!==name.toLowerCase());
-  tdSave();
-  tdRenderList();
-  buildMA();
-  showToast('Entfernt');
-}
-
-// ===================== TD-KORREKTUREN VERWALTEN (Einstellungen, Admin) =====================
+// TD-Korrekturen verwalten (Einstellungen, nur Admin)
 function renderTdCorrections(){
-  const box=document.getElementById('td-corrections-list');
-  if(!box)return;
-  const ids=Object.keys(EXTRA_TRAININGS).filter(id=>EXTRA_TRAININGS[id]&&EXTRA_TRAININGS[id].length);
-  if(!ids.length){box.innerHTML='<div class="kl-empty">Keine manuellen TD-Korrekturen vorhanden.</div>';return;}
+  const box=$('td-corrections-list');if(!box)return;
+  const all=DB.extraTrainings||{};
+  const ids=Object.keys(all).filter(id=>all[id]&&all[id].length);
+  if(!ids.length){box.innerHTML='<div class="empty">Keine manuellen TD-Korrekturen vorhanden.</div>';return;}
   box.innerHTML=ids.map(id=>{
     const m=MA.find(x=>x.id===id);
-    const nm=m?m.name:('Pass-ID '+id);
-    const entries=EXTRA_TRAININGS[id];
-    return `<div style="background:var(--p2);border:1px solid var(--bd);border-radius:6px;padding:9px 12px;margin-bottom:7px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <div style="font-size:11px;font-weight:bold;color:var(--tx);">${nm} <span style="color:var(--mu);font-weight:normal;">(${id})</span></div>
-        <button class="btn sm ng" onclick="clearTdCorrectionsFor('${id}')"><i class="ti ti-trash"></i> Alle für diese Person löschen</button>
+    return`<div class="card-row">
+      <div class="card-row-h">
+        <div class="strong">${esc(m?m.name:'Pass-ID '+id)} <span class="muted">(${esc(id)})</span></div>
+        <button class="btn sm danger" data-action="td-clear-person" data-arg="${esc(id)}"><i class="ti ti-trash"></i> Alle für diese Person</button>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        ${entries.map(t=>`<span class="train-badge ${t.passed?'train-pass':'train-fail'}" style="cursor:pointer;" onclick="clearOneTdCorrection('${id}','${t.name.replace(/'/g,"\\'")}')" title="Klicken zum Entfernen">${t.name} <i class="ti ti-x" style="font-size:9px;"></i></span>`).join('')}
-      </div>
+      <div class="chips">${all[id].map(t=>`<button type="button" class="train-badge ${t.passed?'train-pass':'train-fail'}" data-action="td-clear-one" data-arg="${esc(id)}" data-name="${esc(t.name)}" title="Klicken zum Entfernen">${esc(t.name)} <i class="ti ti-x"></i></button>`).join('')}</div>
     </div>`;
   }).join('');
 }
-function clearOneTdCorrection(id,name){
-  if(!EXTRA_TRAININGS[id])return;
-  EXTRA_TRAININGS[id]=EXTRA_TRAININGS[id].filter(t=>t.name.toLowerCase()!==name.toLowerCase());
-  if(!EXTRA_TRAININGS[id].length) delete EXTRA_TRAININGS[id];
-  cloudPush();
-  renderTdCorrections();
-  buildMA();
-  showToast('Korrektur entfernt — Sheet-Wert gilt wieder');
+async function clearTdCorrectionsFor(id){
+  const ok=await uiConfirm('Alle manuellen TD-Einträge dieser Person entfernen?',{okText:'Entfernen',danger:true});
+  if(!ok)return;
+  await cloudMutate('extraTrainings',all=>{delete all[id];return all;});
+  showToast('Korrekturen entfernt');
 }
-function clearTdCorrectionsFor(id){
-  delete EXTRA_TRAININGS[id];
-  cloudPush();
-  renderTdCorrections();
-  buildMA();
-  showToast('Korrekturen für diese Person entfernt');
-}
-function clearAllTdCorrections(){
-  if(!confirm('Wirklich ALLE manuellen TD-Korrekturen für ALLE Personen löschen? Danach gelten wieder ausschließlich die Sheet-Werte.'))return;
-  EXTRA_TRAININGS={};
-  cloudPush();
-  renderTdCorrections();
-  buildMA();
+async function clearAllTdCorrections(){
+  const ok=await uiConfirm('Wirklich ALLE manuellen TD-Korrekturen für ALLE Personen löschen? Danach gelten ausschließlich die Sheet-Werte.',{title:'Alle TD-Korrekturen löschen',okText:'Alle löschen',danger:true});
+  if(!ok)return;
+  await cloudMutate('extraTrainings',()=>({}));
   showToast('Alle TD-Korrekturen gelöscht');
 }
 
 // ===================== CIRG EVENTS + LOGS =====================
-function cirgSave(){ cloudPush(); }
-
-function cirgAddEvent(){
-  const name=gv('ce-name').trim();
-  if(!name){showToast('Event-Name ist Pflicht');return;}
-  const id='ev'+Date.now();
-  CIRG_EVENTS.push({
-    id, name,
-    desc: gv('ce-desc').trim(),
-    date: document.getElementById('ce-date').value||''
-  });
-  cirgSave();
-  sv2('ce-name','');sv2('ce-desc','');
-  document.getElementById('ce-date').value='';
-  cirgRenderEvents();
-  cirgFillEventSelects();
+async function cirgAddEvent(){
+  if(!requireFields([['ce-name','Event-Name eingeben']]))return;
+  const e={id:uid('ev'),name:gv('ce-name').trim(),desc:gv('ce-desc').trim(),date:gv('ce-date'),by:currentName||currentUser};
+  await cloudMutate('cirgEvents',list=>{list.push(e);return list;});
+  clearForm(['ce-name','ce-desc','ce-date']);
   showToast('Event gespeichert');
 }
-
-function cirgDelEvent(id){
-  if(!confirm('Event wirklich löschen? Zugehörige Logs bleiben erhalten, verlieren aber die Verknüpfung.'))return;
-  CIRG_EVENTS=CIRG_EVENTS.filter(e=>e.id!==id);
-  cirgSave();
-  cirgRenderEvents();
-  cirgFillEventSelects();
-  showToast('Event gelöscht');
-}
-
-function cirgExpandEvent(id){
-  const row=document.getElementById('ce-exp-'+id);
-  if(!row)return;
-  row.style.display=row.style.display==='none'?'block':'none';
-}
-
 function cirgRenderEvents(){
-  const box=document.getElementById('ce-list');
-  const empty=document.getElementById('ce-empty');
-  const count=document.getElementById('ce-count');
-  if(!box)return;
-  if(count) count.textContent=CIRG_EVENTS.length+' Events';
-  if(!CIRG_EVENTS.length){box.innerHTML='';if(empty)empty.style.display='block';return;}
-  if(empty)empty.style.display='none';
-  box.innerHTML=CIRG_EVENTS.map(e=>`
-    <div style="background:var(--p2);border:1px solid var(--bd);border-radius:5px;padding:10px 13px;margin-bottom:8px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
-        <div>
-          <span style="font-weight:bold;color:var(--tx);font-size:12px;">${e.name}</span>
-          ${e.date?`<span style="font-size:10px;color:var(--mu);margin-left:8px;">${fmtD(e.date)}</span>`:''}
-        </div>
-        <div style="display:flex;gap:4px;">
-          <button class="btn sm" style="color:var(--g);border-color:var(--gd)" onclick="cirgExpandEvent('${e.id}')" title="Erklärung anzeigen"><i class="ti ti-eye"></i></button>
-          <button class="btn sm ng" onclick="cirgDelEvent('${e.id}')" title="Löschen"><i class="ti ti-trash"></i></button>
-        </div>
+  const list=DB.cirgEvents||[];
+  setOb('ce-count',list.length+' Events');
+  show('ce-empty',!list.length);
+  $('ce-list').innerHTML=list.map(e=>`<div class="card-row">
+    <div class="card-row-h">
+      <div><span class="strong">${esc(e.name)}</span>${e.date?` <span class="muted small">· ${esc(fmtD(e.date))}</span>`:''}</div>
+      <div class="actions">
+        <button class="btn sm icon" data-action="toggle-row" data-arg="ce-exp-${esc(e.id)}" title="Beschreibung"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon danger" data-action="cirg-del-event" data-arg="${esc(e.id)}" title="Löschen"><i class="ti ti-trash"></i></button>
       </div>
-      <div id="ce-exp-${e.id}" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:11px;color:var(--mu);line-height:1.7;white-space:pre-wrap;">
-        ${e.desc?e.desc.replace(/</g,'&lt;'):'Keine Erklärung hinterlegt.'}
-      </div>
-    </div>`).join('');
+    </div>
+    <div id="ce-exp-${esc(e.id)}" class="card-row-body" hidden>${e.desc?escMultiline(e.desc):'<span class="muted">Keine Beschreibung hinterlegt.</span>'}</div>
+  </div>`).join('');
+  cirgFillEventSelects();
 }
-
 function cirgFillEventSelects(){
-  const selAdd=document.getElementById('cl-event');
-  const selFilter=document.getElementById('cl-filter');
-  if(selAdd){
-    const cur=selAdd.value;
-    selAdd.innerHTML='<option value="">-- kein Event / allgemein --</option>'+CIRG_EVENTS.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-    selAdd.value=cur;
-  }
-  if(selFilter){
-    const cur=selFilter.value;
-    selFilter.innerHTML='<option value="">Alle Events</option>'+CIRG_EVENTS.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
-    selFilter.value=cur;
-  }
-}
-
-function cirgAddLog(){
-  const text=gv('cl-text').trim();
-  if(!text){showToast('Log-Text ist Pflicht');return;}
-  const eventId=gv('cl-event');
-  const ev=CIRG_EVENTS.find(e=>e.id===eventId);
-  const now=new Date();
-  const ts=[String(now.getDate()).padStart(2,'0'),String(now.getMonth()+1).padStart(2,'0'),now.getFullYear()].join('.')+' '+[String(now.getHours()).padStart(2,'0'),String(now.getMinutes()).padStart(2,'0')].join(':');
-  CIRG_LOGS.unshift({
-    id:'lg'+Date.now(),
-    eventId: eventId||'',
-    eventName: ev?ev.name:'',
-    text,
-    author: currentName||currentUser||'--',
-    ts
+  const opts=(DB.cirgEvents||[]).map(e=>`<option value="${esc(e.id)}">${esc(e.name)}</option>`).join('');
+  [['cl-event','-- kein Event / allgemein --'],['cl-filter','Alle Events']].forEach(([id,ph])=>{
+    const s=$(id);if(!s)return;
+    const cur=s.value;
+    s.innerHTML=`<option value="">${ph}</option>`+opts;
+    s.value=cur;
   });
-  cirgSave();
+}
+async function cirgAddLog(){
+  if(!requireFields([['cl-text','Log-Text eingeben']]))return;
+  const eventId=gv('cl-event');
+  const ev=(DB.cirgEvents||[]).find(e=>e.id===eventId);
+  const l={id:uid('lg'),eventId,eventName:ev?ev.name:'',text:gv('cl-text').trim(),author:currentName||currentUser||'--',ts:nowStamp()};
+  await cloudMutate('cirgLogs',list=>{list.unshift(l);return list;});
   sv2('cl-text','');
-  cirgRenderLogs();
   showToast('Log gespeichert');
 }
-
-function cirgDelLog(id){
-  if(!confirm('Log-Eintrag wirklich löschen?'))return;
-  CIRG_LOGS=CIRG_LOGS.filter(l=>l.id!==id);
-  cirgSave();
-  cirgRenderLogs();
-  showToast('Gelöscht');
-}
-
 function cirgRenderLogs(){
-  const box=document.getElementById('cl-list');
-  const empty=document.getElementById('cl-empty');
-  const count=document.getElementById('cl-count');
-  if(!box)return;
-  cirgFillEventSelects();
   const f=gv('cl-filter');
-  const list=f?CIRG_LOGS.filter(l=>l.eventId===f):CIRG_LOGS;
-  if(count) count.textContent=list.length+' Einträge';
-  if(!list.length){box.innerHTML='';if(empty)empty.style.display='block';return;}
-  if(empty)empty.style.display='none';
-  box.innerHTML=list.map(l=>`
-    <div style="background:var(--p2);border:1px solid var(--bd);border-radius:5px;padding:9px 13px;margin-bottom:7px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:5px;">
-        <div style="font-size:10px;color:var(--mu);">
-          ${l.eventName?`<span style="color:var(--g);font-weight:bold;">${l.eventName}</span> · `:''}${l.ts} · ${l.author}
-        </div>
-        <button class="btn sm ng" onclick="cirgDelLog('${l.id}')" title="Löschen"><i class="ti ti-trash"></i></button>
-      </div>
-      <div style="font-size:11px;color:var(--tx);white-space:pre-wrap;line-height:1.6;">${l.text.replace(/</g,'&lt;')}</div>
-    </div>`).join('');
+  const list=(DB.cirgLogs||[]).filter(l=>!f||l.eventId===f);
+  setOb('cl-count',list.length+' Einträge');
+  show('cl-empty',!list.length);
+  $('cl-list').innerHTML=list.map(l=>`<div class="card-row">
+    <div class="card-row-h">
+      <div class="muted small">${l.eventName?`<span class="accent strong">${esc(l.eventName)}</span> · `:''}${esc(l.ts)} · ${esc(l.author)}</div>
+      <button class="btn sm icon danger" data-action="cirg-del-log" data-arg="${esc(l.id)}" title="Löschen"><i class="ti ti-trash"></i></button>
+    </div>
+    <div class="card-row-text">${escMultiline(l.text)}</div>
+  </div>`).join('');
 }
 
 // ===================== LAW AKTENSYSTEM =====================
-function lawSave(){ cloudPush(); }
-
-function lawAdd(){
-  const mandant=gv('lw-mandant').trim(), akteId=gv('lw-akteid').trim();
-  if(!mandant||!akteId){showToast('Mandant und Akten-ID sind Pflichtfelder!');return;}
-  if(LAW_CASES.find(c=>c.akteId.toLowerCase()===akteId.toLowerCase())){
-    showToast('⚠️ Akten-ID '+akteId+' bereits vorhanden!');
-    const el=document.getElementById('lw-akteid');
-    if(el){el.style.borderColor='var(--re)';setTimeout(()=>el.style.borderColor='',2000);}
-    return;
-  }
-  LAW_CASES.push({
-    mandant, akteId,
-    pass: gv('lw-pass').trim(),
-    datum: document.getElementById('lw-datum').value?fmtD(document.getElementById('lw-datum').value):'',
-    status: gv('lw-status'),
-    sachverhalt: gv('lw-sachverhalt').trim(),
-    notizen: gv('lw-notizen').trim(),
-    erstellt: gd()
+async function lawAdd(){
+  if(!requireFields([['lw-mandant','Mandant eingeben'],['lw-akteid','Akten-ID eingeben']]))return;
+  const c={
+    id:uid('law'),mandant:gv('lw-mandant').trim(),akteId:gv('lw-akteid').trim(),pass:gv('lw-pass').trim(),
+    datum:gv('lw-datum')?fmtD(gv('lw-datum')):'',status:gv('lw-status'),
+    sachverhalt:gv('lw-sachverhalt').trim(),notizen:gv('lw-notizen').trim(),erstellt:gd(),by:currentName||currentUser
+  };
+  let dup=false;
+  await cloudMutate('lawCases',list=>{
+    if(list.some(x=>(x.akteId||'').toLowerCase()===c.akteId.toLowerCase())){dup=true;return undefined;}
+    list.push(c);return list;
   });
-  lawSave();
-  ['lw-mandant','lw-akteid','lw-pass','lw-sachverhalt','lw-notizen'].forEach(id=>sv2(id,''));
-  document.getElementById('lw-datum').value='';
+  if(dup){fieldError('lw-akteid',`Akten-ID ${c.akteId} ist bereits vergeben`);return;}
+  clearForm(['lw-mandant','lw-akteid','lw-pass','lw-datum','lw-sachverhalt','lw-notizen']);
   sv2('lw-status','Offen');
-  lawRender();
   showToast('Akte gespeichert');
 }
-
-function lawDel(i){
-  if(!confirm('Akte wirklich löschen?'))return;
-  LAW_CASES.splice(i,1);lawSave();lawRender();showToast('Gelöscht');
-}
-
-function lawExpand(i){
-  const row=document.getElementById('lw-exp-'+i);
-  if(!row)return;
-  row.style.display=row.style.display==='none'?'table-row':'none';
-}
-
 function lawRender(){
-  const q=(gv('lw-search')||'').toLowerCase();
-  const f=gv('lw-filter');
-  let list=LAW_CASES.filter(c=>{
-    const okQ=!q||(c.mandant||'').toLowerCase().includes(q)||(c.akteId||'').toLowerCase().includes(q)||(c.pass||'').includes(q);
-    const okF=!f||c.status===f;
-    return okQ&&okF;
-  });
-  const body=document.getElementById('lw-body');
-  const empty=document.getElementById('lw-empty');
-  const count=document.getElementById('lw-count');
-  if(!body)return;
-  if(count) count.textContent=list.length+' Akten';
-  const statusCol={Offen:'var(--wa)','In Bearbeitung':'var(--bl)','Vor Gericht':'var(--re)',Abgeschlossen:'var(--gr)',Archiviert:'var(--mu)'};
-  if(!list.length){body.innerHTML='';if(empty)empty.style.display='block';return;}
-  if(empty)empty.style.display='none';
-  body.innerHTML=list.map(c=>{
-    const i=LAW_CASES.indexOf(c);
-    const col=statusCol[c.status]||'var(--mu)';
+  const q=gv('lw-search').toLowerCase().trim(),f=gv('lw-filter');
+  const list=(DB.lawCases||[]).filter(c=>
+    (!q||[c.mandant,c.akteId,c.pass].join(' ').toLowerCase().includes(q))&&(!f||c.status===f));
+  setOb('lw-count',list.length+' Akten');
+  fillTable('lw-body',list.map(c=>{
+    const k=itemKey(c),rid='lw-exp-'+_hash(k);
     return`<tr>
-      <td style="color:var(--g);font-size:11px;white-space:nowrap;font-family:'SF Mono','Consolas',monospace;font-weight:600;">${c.akteId}</td>
-      <td style="font-weight:bold">${c.mandant}</td>
-      <td style="font-size:11px;color:var(--mu);white-space:nowrap">${c.datum||'--'}</td>
-      <td><span style="display:inline-block;font-size:10px;padding:1px 7px;border-radius:2px;border:1.5px solid ${col};background:${col}12;color:${col};font-weight:700;letter-spacing:.03em;transform:rotate(-2deg);">${c.status}</span></td>
-      <td style="font-size:11px;color:var(--mu);white-space:nowrap">${c.erstellt||'--'}</td>
-      <td style="text-align:center;white-space:nowrap">
-        <div style="display:flex;gap:3px;justify-content:center;">
-          <button class="btn sm" onclick="lawExpand(${i})" title="Details" style="color:var(--g);border-color:var(--gd)"><i class="ti ti-eye"></i></button>
-          <button class="btn sm ng" onclick="lawDel(${i})" title="Löschen"><i class="ti ti-trash"></i></button>
-        </div>
+      <td class="mono accent strong nowrap">${esc(c.akteId)}</td>
+      <td class="strong">${esc(c.mandant)}</td>
+      <td class="muted small nowrap">${esc(c.datum||'--')}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td class="muted small nowrap">${esc(c.erstellt||'--')}</td>
+      <td class="actions">
+        <button class="btn sm icon" data-action="toggle-row" data-arg="${rid}" title="Details"><i class="ti ti-eye"></i></button>
+        <button class="btn sm icon" data-action="law-status" data-arg="${esc(k)}" title="Status ändern"><i class="ti ti-progress"></i></button>
+        <button class="btn sm icon danger" data-action="law-del" data-arg="${esc(k)}" title="Löschen"><i class="ti ti-trash"></i></button>
       </td>
     </tr>
-    <tr id="lw-exp-${i}" style="display:none">
-      <td colspan="6" style="background:var(--p2);padding:10px 14px;font-size:11px;color:var(--mu);border-bottom:1px solid var(--bd);line-height:1.8;">
-        <b style="color:var(--tx)">Reisepass:</b> ${c.pass||'--'}<br>
-        <b style="color:var(--tx)">Sachverhalt:</b><br>${(c.sachverhalt||'--').replace(/</g,'&lt;').replace(/\n/g,'<br>')}
-        ${c.notizen?`<br><br><b style="color:var(--tx)">Notizen:</b><br>${c.notizen.replace(/</g,'&lt;').replace(/\n/g,'<br>')}`:''}
-      </td>
-    </tr>`;
-  }).join('');
+    <tr id="${rid}" class="exp" hidden><td colspan="6">
+      <div class="exp-title">Reisepass</div><div>${esc(c.pass||'--')}</div>
+      <div class="exp-title">Sachverhalt</div><div>${escMultiline(c.sachverhalt||'--')}</div>
+      ${c.notizen?`<div class="exp-title">Notizen</div><div>${escMultiline(c.notizen)}</div>`:''}
+    </td></tr>`;
+  }).join(''),'lw-empty',!list.length);
+}
+async function lawChangeStatus(k){
+  const c=findByKey(DB.lawCases,k);if(!c)return;
+  const next=LAW_STATUS[(LAW_STATUS.indexOf(c.status)+1)%LAW_STATUS.length];
+  const ok=await uiConfirm(`Status von ${c.akteId} von „${c.status}“ auf „${next}“ setzen?`,{title:'Status ändern',okText:next});
+  if(!ok)return;
+  await cloudMutate('lawCases',list=>{const x=findByKey(list,k);if(!x)return undefined;x.status=next;return list;});
+  showToast('Status: '+next);
 }
 
-
-
+Object.assign(ACTIONS,{
+  'fc-add':fcAdd,
+  'fc-del':(k)=>removeWithUndo('fc',k,'Fallakte'),
+  'fc-copy':(k)=>{const e=findByKey(DB.fc,k);if(e)copyText(fcText(e),'Fallakte kopiert');},
+  'fc-status':fcChangeStatus,
+  'cid-add':cidAdd,
+  'cid-del':(k)=>removeWithUndo('cid',k,'Eintrag'),
+  'td-save':tdSaveTraining,
+  'td-remove':(name)=>tdRemoveTraining(name),
+  'td-clear-one':(id,el)=>tdRemoveTraining(el.dataset.name,id),
+  'td-clear-person':clearTdCorrectionsFor,
+  'td-clear-all':clearAllTdCorrections,
+  'cirg-add-event':cirgAddEvent,
+  'cirg-del-event':(id)=>removeWithUndo('cirgEvents',id,'Event'),
+  'cirg-add-log':cirgAddLog,
+  'cirg-del-log':(id)=>removeWithUndo('cirgLogs',id,'Log-Eintrag'),
+  'law-add':lawAdd,
+  'law-del':(k)=>removeWithUndo('lawCases',k,'Akte'),
+  'law-status':lawChangeStatus
+});
+Object.assign(INPUTS,{'fc-preview':fcPreview,'fc-filter':fcRender,'cid-filter':cidRender,'td-lookup':tdLookup,'lw-filter':lawRender});
+Object.assign(CHANGES,{'fc-preview':fcPreview,'fc-filter':fcRender,'cid-filter':cidRender,'cl-filter':cirgRenderLogs,'lw-filter':lawRender});
+onStore('fc',fcRender);
+onStore('cid',cidRender);
+onStore('extraTrainings',()=>{tdRenderList();renderTdCorrections();});
+onStore('cirgEvents',cirgRenderEvents);
+onStore('cirgLogs',cirgRenderLogs);
+onStore('lawCases',lawRender);

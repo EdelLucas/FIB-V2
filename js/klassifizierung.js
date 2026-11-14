@@ -1,234 +1,129 @@
-// FIB Personalabteilung · Klassifizierung (Orga-Kontakte)
-// ===================== KLASSIFIZIERUNG =====================
-const KL_ORGA_COLORS={FIB:'#1e3a5f',LSPD:'#2f6fd6',SAHP:'#2f8f5b',LI:'#9333c4',EMS:'#dc3545',NG:'#0d9488',GOV:'#c2680a'};
-let KL_DATA=[];
-let EXTRA_TRAININGS={}; // { [Pass-ID]: [{name,passed}, ...] } -- von TD zusaetzlich erfasste/korrigierte Ausbildungen
-let CIRG_EVENTS=[];     // [{id,name,desc,date}]
-let CIRG_LOGS=[];       // [{id,eventId,eventName,text,author,ts}]
-let LAW_CASES=[];       // [{id,mandant,akteId,datum,status,sachverhalt,notizen,erstellt}]
-let MA_ORDER=[];        // Reihenfolge (Pass-IDs) für manuell sortiertes Mitarbeiterverzeichnis
+// FIB Personalabteilung · Klassifizierung (Kontakte anderer Organisationen)
 let KL_ORGA='Alle';
+let _klEditKey=null;
 
-function klLoad(){try{const d=localStorage.getItem('fib_kl');if(d)KL_DATA=JSON.parse(d);}catch(e){}}
-function klSave(){cloudPush();}
-
-function klAdd(){
-  const orga=gv('kl-orga'),name=gv('kl-name').trim(),id=gv('kl-id').trim(),rang=gv('kl-rang').trim(),tel=gv('kl-tel').trim(),info=gv('kl-info').trim();
-  if(!orga||!name){showToast('Orga und Name sind Pflichtfelder!');return;}
-
-  // Duplikat-Prüfung: gleicher Name UND gleiche Orga
-  const dup = KL_DATA.find(e =>
-    e.name.toLowerCase() === name.toLowerCase() && e.orga === orga
-  );
-  if(dup){
-    showToast('⚠️ '+name+' ist in '+orga+' bereits eingetragen!');
-    // Felder rot markieren
-    const nf=document.getElementById('kl-name');
-    const of2=document.getElementById('kl-orga');
-    [nf,of2].forEach(el=>{if(el){el.style.borderColor='var(--re)';setTimeout(()=>el.style.borderColor='',2000);}});
-    return;
+function klFormValues(p){
+  return{orga:gv(p+'-orga'),name:gv(p+'-name').trim(),id:gv(p+'-id').trim(),rang:gv(p+'-rang').trim(),tel:gv(p+'-tel').trim(),info:gv(p+'-info').trim()};
+}
+async function klAdd(){
+  if(!requireFields([['kl-orga','Organisation wählen'],['kl-name','Name eingeben']]))return;
+  const v=klFormValues('kl');
+  if(DB.kl.some(e=>e.orga===v.orga&&(e.name||'').toLowerCase()===v.name.toLowerCase())){
+    fieldError('kl-name',`${v.name} ist in ${v.orga} bereits eingetragen`);return;
   }
-
-  // Orga-Tab auf die neue Orga setzen
-  const savedOrga = orga;
-  KL_DATA.push({orga,name,id,rang,tel,info});
-  klSave();
-  // Formular leeren aber Orga behalten
-  sv2('kl-name','');sv2('kl-id','');sv2('kl-rang','');sv2('kl-tel','');sv2('kl-info','');
-  // Tab auf die eingetragene Orga wechseln
-  const tab = document.querySelector(`#kl-orga-tabs .orga-tab[data-orga="${savedOrga}"]`);
-  if(tab) klSwitch(tab);
-  else klRender();
+  // "id" ist hier die Pass-ID (Altbestand) – der interne Schlüssel heißt "key"
+  const entry={...v,key:uid('kl')};
+  await cloudMutate('kl',list=>{
+    if(list.some(e=>e.orga===v.orga&&(e.name||'').toLowerCase()===v.name.toLowerCase()))return undefined;
+    list.push(entry);return list;
+  });
+  clearForm(['kl-name','kl-id','kl-rang','kl-tel','kl-info']);
+  klSwitch(v.orga);
   showToast('Eintrag hinzugefügt');
 }
+// Klassifizierungs-Einträge nutzen "id" für die Pass-ID → eigener Schlüssel
+function klKey(e){ return e.key||('h'+_hash(JSON.stringify(e,Object.keys(e||{}).sort()))); }
+function klFind(list,k){ return list.find(e=>klKey(e)===k); }
 
-function klDel(i){
-  if(!confirm('Eintrag wirklich löschen?'))return;
-  KL_DATA.splice(i,1);
-  klSave();
-  klRender();
-  showToast('Gelöscht');
+async function klDel(k){
+  let removed=null,index=-1;
+  await cloudMutate('kl',list=>{
+    index=list.findIndex(e=>klKey(e)===k);
+    if(index<0)return undefined;
+    removed=list.splice(index,1)[0];return list;
+  });
+  if(!removed)return;
+  showToast(`${removed.name} gelöscht`,{action:{label:'Rückgängig',fn:()=>{
+    cloudMutate('kl',list=>{ if(klFind(list,klKey(removed)))return undefined; list.splice(Math.min(index,list.length),0,removed); return list; })
+      .then(()=>showToast('Wiederhergestellt')).catch(()=>{});
+  }}});
 }
-
-function klSwitch(el){
-  document.querySelectorAll('#kl-orga-tabs .orga-tab').forEach(t=>t.classList.remove('act'));
-  el.classList.add('act');
-  KL_ORGA=el.dataset.orga;
+function klSwitch(orga){
+  KL_ORGA=orga;
+  document.querySelectorAll('#kl-orga-tabs .orga-tab').forEach(t=>t.classList.toggle('act',t.dataset.orga===orga));
   klRender();
 }
-
 function klRender(){
-  const q=(gv('kl-search')||'').toLowerCase();
-  let list=KL_ORGA==='Alle'?KL_DATA:KL_DATA.filter(e=>e.orga===KL_ORGA);
-  if(q)list=list.filter(e=>(e.name||'').toLowerCase().includes(q)||(e.id||'').includes(q)||(e.rang||'').toLowerCase().includes(q)||(e.tel||'').includes(q)||(e.info||'').toLowerCase().includes(q));
-
-  const body=document.getElementById('kl-body');
-  const empty=document.getElementById('kl-empty');
-  const count=document.getElementById('kl-count');
-  const title=document.getElementById('kl-list-title');
-
-  title.textContent=KL_ORGA==='Alle'?'[ Alle Einträge ]':'[ '+KL_ORGA+' ]';
-  count.textContent=list.length+' Einträge';
-
-  if(!list.length){
-    body.innerHTML='';
-    empty.style.display='block';
-  } else {
-    empty.style.display='none';
-    body.innerHTML=list.map((e)=>{
-      const ri=KL_DATA.indexOf(e);
-      const col=KL_ORGA_COLORS[e.orga]||'var(--mu)';
-      const nameSafe=e.name.replace(/'/g,"\\'");
-      return`<tr draggable="true" data-ri="${ri}" class="kl-drag-row" style="cursor:grab;">
-        <td>
-          <span style="color:var(--mu);font-size:14px;vertical-align:middle;margin-right:5px;cursor:grab" title="Ziehen zum Sortieren">⠿</span>
-          <span style="display:inline-block;font-size:10px;padding:1px 8px;border-radius:2px;border:1px solid ${col}55;background:${col}20;color:${col};font-weight:bold;letter-spacing:.05em">${e.orga}</span>
-        </td>
-        <td style="font-weight:bold">${e.name}</td>
-        <td style="color:var(--mu);font-size:11px">${e.id||'--'}</td>
-        <td style="font-size:11px">${e.rang||'--'}</td>
-        <td style="color:var(--bl);font-size:11px">${e.tel||'--'}</td>
-        <td style="color:var(--mu);font-size:10px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(e.info||'').replace(/"/g,'&quot;')}">${e.info||'--'}</td>
-        <td style="text-align:center;white-space:nowrap">
-          <div style="display:flex;gap:3px;justify-content:center;">
-            <button class="btn sm bl" onclick="klCopyName('${nameSafe}')" title="Name kopieren"><i class="ti ti-user"></i></button>
-            <button class="btn sm" onclick="klOpenEdit(${ri})" title="Bearbeiten" style="color:var(--g);border-color:var(--gd)"><i class="ti ti-edit"></i></button>
-            <button class="btn sm ng" onclick="klDel(${ri})" title="Löschen"><i class="ti ti-trash"></i></button>
-          </div>
-        </td>
-      </tr>`;
-    }).join('');
-
-    // Drag & Drop initialisieren
-    klInitDrag();
-  }
-
-  // Tab-Zahler aktualisieren
-  ['Alle','FIB','LSPD','SAHP','LI','EMS','NG','GOV'].forEach(o=>{
-    const tab=document.querySelector(`#kl-orga-tabs .orga-tab[data-orga="${o}"]`);
-    if(!tab)return;
-    const cnt=o==='Alle'?KL_DATA.length:KL_DATA.filter(e=>e.orga===o).length;
-    let badge=tab.querySelector('.orga-cnt');
-    if(cnt>0){
-      if(!badge){badge=document.createElement('span');badge.className='orga-cnt';tab.appendChild(badge);}
-      badge.textContent=cnt;
-    } else {
-      if(badge)badge.remove();
-    }
+  const data=DB.kl||[];
+  const q=gv('kl-search').toLowerCase().trim();
+  let list=KL_ORGA==='Alle'?data:data.filter(e=>e.orga===KL_ORGA);
+  if(q)list=list.filter(e=>[e.name,e.id,e.rang,e.tel,e.info].join(' ').toLowerCase().includes(q));
+  setOb('kl-list-title',KL_ORGA==='Alle'?'Alle Einträge':KL_ORGA);
+  setOb('kl-count',list.length+' Einträge');
+  fillTable('kl-body',list.map(e=>{
+    const k=klKey(e);
+    return`<tr draggable="true" data-key="${esc(k)}" class="drag-row">
+      <td><span class="grip" title="Ziehen zum Sortieren">⠿</span>${orgaBadge(e.orga)}</td>
+      <td class="strong">${esc(e.name)}</td>
+      <td class="mono muted">${esc(e.id||'--')}</td>
+      <td>${esc(e.rang||'--')}</td>
+      <td class="info-text">${esc(e.tel||'--')}</td>
+      <td class="muted small clip" title="${esc(e.info)}">${esc(e.info||'--')}</td>
+      <td class="actions">
+        <button class="btn sm icon" data-action="kl-copy-name" data-arg="${esc(k)}" title="Name kopieren"><i class="ti ti-copy"></i></button>
+        <button class="btn sm icon" data-action="kl-edit" data-arg="${esc(k)}" title="Bearbeiten"><i class="ti ti-edit"></i></button>
+        <button class="btn sm icon danger" data-action="kl-del" data-arg="${esc(k)}" title="Löschen"><i class="ti ti-trash"></i></button>
+      </td>
+    </tr>`;
+  }).join(''),'kl-empty',!list.length);
+  initDragSort('#kl-body .drag-row','key',klDrop);
+  // Zähler an den Tabs
+  document.querySelectorAll('#kl-orga-tabs .orga-tab').forEach(tab=>{
+    const o=tab.dataset.orga;
+    const n=o==='Alle'?data.length:data.filter(e=>e.orga===o).length;
+    let b=tab.querySelector('.orga-cnt');
+    if(n>0){ if(!b){b=document.createElement('span');b.className='orga-cnt';tab.appendChild(b);} b.textContent=n; }
+    else if(b)b.remove();
   });
 }
-
-function klInitDrag(){
-  const rows=document.querySelectorAll('.kl-drag-row');
-  let dragSrc=null;
-
-  rows.forEach(row=>{
-    row.addEventListener('dragstart',function(e){
-      dragSrc=this;
-      this.style.opacity='0.4';
-      e.dataTransfer.effectAllowed='move';
-      e.dataTransfer.setData('text/plain', this.dataset.ri);
-    });
-    row.addEventListener('dragend',function(){
-      this.style.opacity='1';
-      document.querySelectorAll('.kl-drag-row').forEach(r=>{
-        r.style.borderTop='';
-        r.style.borderBottom='';
-      });
-    });
-    row.addEventListener('dragover',function(e){
-      e.preventDefault();
-      e.dataTransfer.dropEffect='move';
-      document.querySelectorAll('.kl-drag-row').forEach(r=>{r.style.borderTop='';r.style.borderBottom='';});
-      // Zeige Linie oben oder unten je nach Mausposition
-      const rect=this.getBoundingClientRect();
-      const mid=rect.top+rect.height/2;
-      if(e.clientY<mid) this.style.borderTop='2px solid var(--g)';
-      else this.style.borderBottom='2px solid var(--g)';
-    });
-    row.addEventListener('dragleave',function(){
-      this.style.borderTop='';
-      this.style.borderBottom='';
-    });
-    row.addEventListener('drop',function(e){
-      e.preventDefault();
-      if(dragSrc===this)return;
-      const fromRi=parseInt(e.dataTransfer.getData('text/plain'));
-      const toRi=parseInt(this.dataset.ri);
-      if(isNaN(fromRi)||isNaN(toRi)||fromRi===toRi)return;
-
-      // Bestimme ob vor oder nach dem Ziel eingefügt werden soll
-      const rect=this.getBoundingClientRect();
-      const insertAfter=e.clientY>=(rect.top+rect.height/2);
-
-      // Element aus Array entfernen
-      const item=KL_DATA.splice(fromRi,1)[0];
-
-      // Neue Position berechnen (nach dem Entfernen verschiebt sich der Index)
-      let insertAt=KL_DATA.indexOf(KL_DATA.find((_,i)=>i===(fromRi<toRi?toRi-1:toRi)));
-      // Einfacher: direkt über den aktuellen toRi-Wert nach Entfernen
-      let newIdx=toRi>fromRi?toRi-1:toRi;
-      if(insertAfter) newIdx++;
-      newIdx=Math.max(0,Math.min(newIdx,KL_DATA.length));
-
-      KL_DATA.splice(newIdx,0,item);
-      klSave();
-      klRender();
-    });
+function klDrop(fromK,toK,after){
+  cloudMutate('kl',list=>{
+    const from=list.findIndex(e=>klKey(e)===fromK);if(from<0)return undefined;
+    const item=list.splice(from,1)[0];
+    const to=list.findIndex(e=>klKey(e)===toK);if(to<0)return undefined;
+    list.splice(after?to+1:to,0,item);return list;
+  }).catch(()=>{});
+}
+function klOpenEdit(k){
+  const e=klFind(DB.kl,k);if(!e)return;
+  _klEditKey=k;
+  ['orga','name','id','rang','tel','info'].forEach(f=>{sv2('kl-edit-'+f,e[f]);clearFieldError($('kl-edit-'+f));});
+  openModal('kl-modal');
+}
+async function klSaveModal(){
+  if(!requireFields([['kl-edit-orga','Organisation wählen'],['kl-edit-name','Name eingeben']]))return;
+  const v=klFormValues('kl-edit');
+  const k=_klEditKey;
+  let found=false;
+  await cloudMutate('kl',list=>{
+    const i=list.findIndex(e=>klKey(e)===k);
+    if(i<0)return undefined;
+    found=true;
+    list[i]={...list[i],...v,key:list[i].key||uid('kl')};
+    return list;
   });
+  closeModalById('kl-modal');
+  showToast(found?'Eintrag gespeichert':'Eintrag existiert nicht mehr',{type:found?'ok':'err'});
 }
-
-function klCopyName(name){
-  navigator.clipboard.writeText(name).then(()=>showToast('Name kopiert: '+name)).catch(()=>{});
-}
-
-function klOpenEdit(ri){
-  const e=KL_DATA[ri];if(!e)return;
-  document.getElementById('kl-edit-idx').value=ri;
-  document.getElementById('kl-edit-orga').value=e.orga||'';
-  document.getElementById('kl-edit-name').value=e.name||'';
-  document.getElementById('kl-edit-id').value=e.id||'';
-  document.getElementById('kl-edit-rang').value=e.rang||'';
-  document.getElementById('kl-edit-tel').value=e.tel||'';
-  document.getElementById('kl-edit-info').value=e.info||'';
-  document.getElementById('kl-modal').classList.add('show');
-}
-
-function klCloseModal(){document.getElementById('kl-modal').classList.remove('show');}
-
-function klSaveModal(){
-  const ri=parseInt(document.getElementById('kl-edit-idx').value);
-  const orga=document.getElementById('kl-edit-orga').value;
-  const name=document.getElementById('kl-edit-name').value.trim();
-  if(!orga||!name){showToast('Orga und Name sind Pflichtfelder!');return;}
-  KL_DATA[ri]={
-    orga,name,
-    id:document.getElementById('kl-edit-id').value.trim(),
-    rang:document.getElementById('kl-edit-rang').value.trim(),
-    tel:document.getElementById('kl-edit-tel').value.trim(),
-    info:document.getElementById('kl-edit-info').value.trim()
-  };
-  klSave();klRender();klCloseModal();showToast('Eintrag gespeichert');
-}
-
-document.getElementById('kl-modal').addEventListener('click',function(e){if(e.target===this)klCloseModal();});
-
-function klCopyList(orga){
-  const list=orga==='Alle'?KL_DATA:KL_DATA.filter(e=>e.orga===orga);
-  if(!list.length){showToast('Keine Einträge vorhanden');return;}
+function klCopyList(){
+  const list=KL_ORGA==='Alle'?DB.kl:DB.kl.filter(e=>e.orga===KL_ORGA);
+  if(!list.length){showToast('Keine Einträge vorhanden',{type:'info'});return;}
+  const mask=s=>(!s||s==='--')?'--':'||'+s+'||';
   const groups={};
-  list.forEach(e=>{if(!groups[e.orga])groups[e.orga]=[];groups[e.orga].push(e);});
-  const mask=(str)=>{if(!str||str==='--')return'--';return'||'+str+'||';};
-  const emoji_map={FIB:'🟡',LSPD:'🔵',SAHP:'🟢',LI:'🟣',EMS:'🔴',NG:'🩵',GOV:'🟠'};
-  let out='';
-  Object.keys(groups).forEach(org=>{
-    const emoji=emoji_map[org]||'⚪';
-    out+=`${emoji} **${org}**\n`;
-    groups[org].forEach(e=>{
-      out+=`${e.name} | ${e.rang||'--'} | ID: ${mask(e.id)} | Tel: ${mask(e.tel)}${e.info?` | ${e.info}`:''}\n`;
-    });
-    out+='\n';
-  });
-  navigator.clipboard.writeText(out.trim()).then(()=>showToast('Liste für Discord kopiert!')).catch(()=>{});
+  list.forEach(e=>{(groups[e.orga]=groups[e.orga]||[]).push(e);});
+  const out=Object.keys(groups).map(org=>`${ORGA_EMOJI[org]||'⚪'} **${org}**\n`+groups[org].map(e=>
+    `${e.name} | ${e.rang||'--'} | ID: ${mask(e.id)} | Tel: ${mask(e.tel)}${e.info?' | '+e.info:''}`).join('\n')).join('\n\n');
+  copyText(out,'Liste für Discord kopiert');
 }
 
+Object.assign(ACTIONS,{
+  'kl-add':klAdd,
+  'kl-switch':klSwitch,
+  'kl-del':klDel,
+  'kl-edit':klOpenEdit,
+  'kl-save':klSaveModal,
+  'kl-copy-list':klCopyList,
+  'kl-copy-name':(k)=>{const e=klFind(DB.kl,k);if(e)copyText(e.name,'Name kopiert: '+e.name);}
+});
+Object.assign(INPUTS,{'kl-search':klRender});
+onStore('kl',klRender);
